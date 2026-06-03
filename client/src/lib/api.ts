@@ -76,6 +76,15 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
 	listSnacks: () => requestJson<SnackApiRecord[]>('/snacks'),
 	createSnack: (payload: SnackApiInput) => requestJson<SnackApiRecord>('/snacks', { method: 'POST', body: JSON.stringify(payload) }),
+	updateSnack: (id: string, payload: SnackApiInput) => requestJson<SnackApiRecord>(`/snacks/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+	deleteSnack: async (id: string) => {
+		const response = await fetch(`${apiBase}/snacks/${id}`, { method: 'DELETE' });
+		if (!response.ok) {
+			const message = await response.text();
+			throw new Error(message || `Request failed with ${response.status}`);
+		}
+		return;
+	},
 	listVouchers: () => requestJson<VoucherApiRecord[]>('/vouchers'),
 	getVoucher: (id: string) => requestJson<VoucherApiRecord & { items: VoucherLineItemRecord[] }>(`/vouchers/${id}`),
 	createVoucher: (payload: VoucherApiInput) => requestJson<VoucherApiRecord & { items: VoucherLineItemRecord[] }>('/vouchers', { method: 'POST', body: JSON.stringify(payload) }),

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Header, Input } from '../../../ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Header, Input } from '../../../ui';
 import { api, type VoucherApiRecord } from '../../../lib/api';
 import { formatMMK } from '../../../lib/currency';
 
@@ -25,7 +25,6 @@ export function SalesHistoryPage() {
 			<Header
 				eyebrow="Reports"
 				title="Sales History"
-				description="Search, filter, and enter completed vouchers manually."
 				actions={
 					<Button type="button" variant="secondary">
 						<Search className="h-4 w-4" />
@@ -37,7 +36,6 @@ export function SalesHistoryPage() {
 			<Card>
 				<CardHeader>
 					<CardTitle>Filters</CardTitle>
-					<CardDescription>Type the voucher number or date range to narrow results.</CardDescription>
 				</CardHeader>
 				<CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 					<Input label="Voucher number" placeholder="VCH-20250602-001" value={filters.voucher} onChange={(event) => setFilters((current) => ({ ...current, voucher: event.target.value }))} />
@@ -49,7 +47,6 @@ export function SalesHistoryPage() {
 			<Card>
 				<CardHeader>
 					<CardTitle>Recent vouchers</CardTitle>
-					<CardDescription>Loaded from the backend API.</CardDescription>
 				</CardHeader>
 				<CardContent className="overflow-hidden p-0">
 					{errorMessage ? <div className="px-4 py-5 text-sm text-rose-600">{errorMessage}</div> : null}

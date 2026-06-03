@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package2 } from 'lucide-react';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Header, Input } from '../../../ui';
+import { Package2, Pencil, Trash2 } from 'lucide-react';
+import { Button, Card, CardContent, CardHeader, CardTitle, Header, Input } from '../../../ui';
 import { api, type SnackApiRecord } from '../../../lib/api';
 
 type SnackEntry = {
@@ -47,9 +47,15 @@ export function SnacksPage() {
 		setIsSaving(true);
 		setErrorMessage(null);
 		try {
-			const created = await api.createSnack({ name: form.name });
-
-			setSnacks((current) => [mapSnackRecordToEntry(created), ...current]);
+			if (form.id) {
+				const updated = await api.updateSnack(form.id, { name: form.name });
+				setSnacks((current) =>
+					current.map((snack) => (snack.id === updated.id ? mapSnackRecordToEntry(updated) : snack)),
+				);
+			} else {
+				const created = await api.createSnack({ name: form.name });
+				setSnacks((current) => [mapSnackRecordToEntry(created), ...current]);
+			}
 			setForm(defaultSnackEntry);
 		} catch (error) {
 			setErrorMessage(error instanceof Error ? error.message : 'Failed to save snack');
@@ -58,14 +64,32 @@ export function SnacksPage() {
 		}
 	}
 
+	async function handleDelete(snack: SnackEntry) {
+		const confirmed = window.confirm(t('snacks.confirm_delete', { name: snack.name, defaultValue: `Delete "${snack.name}"?` }));
+		if (!confirmed) return;
+
+		setErrorMessage(null);
+		try {
+			await api.deleteSnack(snack.id);
+			setSnacks((current) => current.filter((entry) => entry.id !== snack.id));
+			setForm((current) => (current.id === snack.id ? defaultSnackEntry : current));
+		} catch (error) {
+			setErrorMessage(error instanceof Error ? error.message : 'Failed to delete snack');
+		}
+	}
+
+	function handleEdit(snack: SnackEntry) {
+		setForm(snack);
+		setErrorMessage(null);
+	}
+
 	return (
 		<div className="space-y-6">
 			<Header
 				eyebrow={t('snacks.title')}
 				title={t('snacks.title')}
-				description={t('snacks.description')}
 				actions={
-					<Button type="button">
+					<Button type="button" onClick={() => setForm(defaultSnackEntry)}>
 						<Package2 className="h-4 w-4" />
 						{t('actions.add')}
 					</Button>
@@ -76,15 +100,14 @@ export function SnacksPage() {
 				<Card>
 						<CardHeader>
 							<CardTitle>{t('snacks.details_title', 'Snack details')}</CardTitle>
-							<CardDescription>{t('snacks.details_description', 'Enter snack names by hand.')}</CardDescription>
 						</CardHeader>
 					<CardContent>
 						<form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
 								<Input label={t('snacks.fields.name', 'Snack name')} value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
 							<div className="md:col-span-2 flex gap-3">
-								<Button type="submit" disabled={isSaving}>{isSaving ? 'Saving...' : t('actions.save')}</Button>
+								<Button type="submit" disabled={isSaving}>{isSaving ? t('actions.saving', 'Saving...') : form.id ? t('actions.update', 'Update snack') : t('actions.save')}</Button>
 									<Button type="button" variant="secondary" onClick={() => setForm(defaultSnackEntry)}>
-									{t('actions.clear')}
+									{form.id ? t('actions.cancel', 'Cancel') : t('actions.clear')}
 								</Button>
 							</div>
 							{errorMessage ? <div className="md:col-span-2 text-sm text-rose-600">{errorMessage}</div> : null}
@@ -94,17 +117,27 @@ export function SnacksPage() {
 
 				<Card>
 					<CardHeader>
-							<CardTitle>Snack list</CardTitle>
-							<CardDescription>Saved snack names appear here after you add them.</CardDescription>
+							<CardTitle>{t('snacks.list_title', 'Snack list')}</CardTitle>
 					</CardHeader>
 						<CardContent>
 							<div className="space-y-2">
-								{snacks.length ? snacks.map((snack) => (
-									<div key={snack.id || snack.name} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900">
-										{snack.name}
+								{snacks.length ? snacks.map((snack, index) => (
+									<div key={snack.id || snack.name} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+										<div className="w-7 text-left text-sm font-semibold text-slate-500">{index + 1}.</div>
+										<div className="flex-1 text-sm font-medium text-slate-900">{snack.name}</div>
+										<div className="flex items-center gap-2">
+											<Button type="button" variant="secondary" className="h-8 px-3" onClick={() => handleEdit(snack)}>
+												<Pencil className="h-4 w-4" />
+												{t('actions.edit', 'Edit')}
+											</Button>
+											<Button type="button" variant="secondary" className="h-8 px-3 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => void handleDelete(snack)}>
+												<Trash2 className="h-4 w-4" />
+												{t('actions.delete', 'Delete')}
+											</Button>
+										</div>
 									</div>
 								)) : (
-									<div className="text-sm text-slate-500">No snacks saved yet.</div>
+									<div className="text-sm text-slate-500">{t('snacks.empty', 'No snacks saved yet.')}</div>
 								)}
 							</div>
 					</CardContent>

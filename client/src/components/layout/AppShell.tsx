@@ -1,19 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate, Link, NavLink, Outlet } from 'react-router-dom';
+import { useLocation, Link, NavLink, Outlet } from 'react-router-dom';
 import {
 	Candy,
 	History,
 	LayoutDashboard,
-	LogOut,
 	Menu,
 	ReceiptText,
-	Settings,
-	UserRound,
 	X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../../ui/Button';
-import { DropdownMenu } from '../../ui/DropdownMenu';
 import { LanguageSwitcher } from '../LanguageSwitcher';
 
 const navItems = [
@@ -24,7 +19,6 @@ const navItems = [
 ];
 
 export function AppShell() {
-	const navigate = useNavigate();
 	const location = useLocation();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -148,31 +142,7 @@ export function AppShell() {
 						})}
 					</nav>
 
-					<div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-4">
-						<div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{t('ui.quick_note', 'Quick note')}</div>
-						<p className="mt-2 text-sm leading-6 text-slate-600">{t('ui.quick_note_text', 'This sample keeps the layout simple, readable, and easy to scan.')}</p>
-					</div>
-
-					<div className="mt-6 space-y-3 border-t border-slate-200 pt-5">
-						<div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white">
-								A
-							</div>
-							<div>
-								<p className="text-sm font-semibold text-slate-900">{t('user.name', 'Admin')}</p>
-								<p className="text-xs text-slate-500">{t('user.sample', 'Sample user')}</p>
-							</div>
-						</div>
-						<DropdownMenu
-							label={t('user.menu_label', 'Admin')}
-							align="right"
-							items={[
-								{ label: t('user.profile', 'Profile'), icon: UserRound, onClick: () => void 0 },
-								{ label: t('user.settings', 'Settings'), icon: Settings, onClick: () => void 0 },
-								{ label: t('user.sign_out', 'Sign out'), icon: LogOut, destructive: true, onClick: () => void 0 },
-							]}
-						/>
-
+					<div className="mt-4 border-t border-slate-200 pt-4">
 						<button
 							type="button"
 							className="flex h-10 w-full items-center justify-center rounded-xl bg-red-500 px-4 text-sm font-semibold text-white transition hover:bg-red-600"
@@ -187,7 +157,6 @@ export function AppShell() {
 						<div className="flex flex-wrap items-center justify-between gap-4">
 							<div>
 								<h1 className="text-2xl font-bold tracking-tight text-orange-500">{t('header.title', 'Sample Dashboard')}</h1>
-								<p className="mt-1 text-sm text-slate-500">{t('header.subtitle', 'Clean route layout for snack, voucher, and report screens.')}</p>
 							</div>
 
 							<div className="flex flex-wrap items-center justify-end gap-3">
@@ -197,10 +166,6 @@ export function AppShell() {
 								</div>
 
 								<LanguageSwitcher />
-
-								<Button type="button" variant="secondary" onClick={() => navigate('/vouchers/new')}>
-									New Voucher
-								</Button>
 							</div>
 						</div>
 					</header>

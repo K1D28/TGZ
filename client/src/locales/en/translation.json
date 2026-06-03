@@ -1,7 +1,25 @@
 {
   "dashboard": { "title": "Dashboard", "overview": "Manual admin view for sales, vouchers, and top items.", "overview_label": "Overview", "today": "Today", "all_time": "All Time" },
-  "snacks": { "title": "Snacks", "description": "Keep snack names in a simple, usable admin form.", "details_title": "Snack details", "details_description": "Enter snack names by hand.", "fields": { "name": "Snack name" } },
-  "actions": { "add": "Add snack", "save": "Save snack", "clear": "Clear form" },
+  "snacks": {
+    "title": "Snacks",
+    "description": "Keep snack names in a simple, usable admin form.",
+    "details_title": "Snack details",
+    "details_description": "Enter snack names by hand.",
+    "list_title": "Snack list",
+    "empty": "No snacks saved yet.",
+    "confirm_delete": "Delete \"{{name}}\"?",
+    "fields": { "name": "Snack name" }
+  },
+  "actions": {
+    "add": "Add snack",
+    "save": "Save snack",
+    "update": "Update snack",
+    "delete": "Delete",
+    "edit": "Edit",
+    "clear": "Clear form",
+    "cancel": "Cancel",
+    "saving": "Saving..."
+  },
   "filters": { "voucher_number": "Voucher number", "date_from": "Date from", "date_to": "Date to" },
   "nav": { "dashboard": "Dashboard", "snacks": "Snacks", "new_voucher": "New Voucher", "sales_history": "Sales History" },
   "ui": { "quick_note": "Quick note", "quick_note_text": "This sample keeps the layout simple, readable, and easy to scan." },

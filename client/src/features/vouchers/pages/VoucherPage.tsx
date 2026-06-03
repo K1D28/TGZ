@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { ReceiptText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Header, Input } from '../../../ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Header, Input } from '../../../ui';
 import { api, type SnackLookupRecord, type VoucherApiRecord, type VoucherLineItemRecord } from '../../../lib/api';
 
 const DRAFT_STORAGE_KEY = 'voucher-draft-id';
@@ -654,11 +654,10 @@ name: snack.name,
 			<Header
 				eyebrow="Sales"
 				title="New Voucher"
-				description="Create vouchers from the snack catalog or by entering everything manually."
 				actions={
 					<Button type="button">
 						<ReceiptText className="h-4 w-4" />
-						Catalog lookup
+						Create Voucher
 					</Button>
 				}
 			/>
@@ -667,7 +666,6 @@ name: snack.name,
 				<Card>
 					<CardHeader>
 						<CardTitle>Voucher editor</CardTitle>
-						<CardDescription>Submit voucher info first, then add line items with quantity, unit, unit 2, and unit price.</CardDescription>
 					</CardHeader>
 					<CardContent className="flex flex-col gap-3">
 						<Input label={t('voucher.fields.buyer_name')} placeholder={t('voucher.fields.buyer_name')} value={buyerName} onChange={(event) => setBuyerName(event.target.value)} disabled={infoSubmitted} />
@@ -686,7 +684,6 @@ name: snack.name,
 						</div>
 
 						<form className="flex flex-col gap-4" onSubmit={handleItemSubmit}>
-							{!infoSubmitted ? <div className="text-sm text-slate-500">Submit info first to enable line item entry.</div> : null}
 							<div className="relative">
 								<Input
 									label={t('voucher.fields.item_name')}
@@ -773,9 +770,6 @@ name: snack.name,
 							/>
 							<div className="flex flex-wrap gap-3">
 								<Button type="submit" disabled={!infoSubmitted}>Add line item</Button>
-								<div className="text-sm text-slate-500">
-									{itemForm.snackId ? 'Selected from database.' : 'Pick a snack from the suggestions to fill the name.'}
-								</div>
 							</div>
 						</form>
 					</CardContent>
@@ -784,7 +778,6 @@ name: snack.name,
 				<Card className="flex flex-col">
 					<CardHeader>
 						<CardTitle>Voucher summary</CardTitle>
-						<CardDescription>Selected line items and totals update as you add values.</CardDescription>
 					</CardHeader>
 					<CardContent className="flex flex-1 flex-col gap-4">
 						<div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
