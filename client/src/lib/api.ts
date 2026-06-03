@@ -54,11 +54,7 @@ export type VoucherApiInput = {
 	items: VoucherLineItemInput[];
 };
 
-const apiBase = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? '/api' : '');
-
-if (!apiBase) {
-	throw new Error('Missing VITE_API_BASE_URL. Set it in Vercel to your Railway backend URL, e.g. https://your-backend.up.railway.app/api');
-}
+const apiBase = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? '/api' : 'https://tgz-production.up.railway.app/api');
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 	const response = await fetch(`${apiBase}${path}`, {
