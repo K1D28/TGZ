@@ -8,9 +8,10 @@ type ModalProps = {
 	onClose: () => void;
 	children: React.ReactNode;
 	footer?: React.ReactNode;
+	className?: string;
 };
 
-export function Modal({ open, title, description, onClose, children, footer }: ModalProps) {
+export function Modal({ open, title, description, onClose, children, footer, className = '' }: ModalProps) {
 	const dialogRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
@@ -55,7 +56,7 @@ export function Modal({ open, title, description, onClose, children, footer }: M
 				aria-labelledby="modal-title"
 				aria-describedby={description ? 'modal-description' : undefined}
 				tabIndex={-1}
-				className="relative z-10 w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl outline-none dark:border-slate-800 dark:bg-slate-900"
+				className={`relative z-10 w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl outline-none dark:border-slate-800 dark:bg-slate-900 ${className}`}
 			>
 				<div className="flex items-start justify-between gap-4">
 					<div>

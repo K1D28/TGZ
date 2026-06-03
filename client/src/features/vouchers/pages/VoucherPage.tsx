@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { ReceiptText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, CardContent, CardHeader, CardTitle, Header, Input } from '../../../ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Header, Input, Modal } from '../../../ui';
 import { api, type SnackLookupRecord, type VoucherApiRecord, type VoucherLineItemRecord } from '../../../lib/api';
 
 const DRAFT_STORAGE_KEY = 'voucher-draft-id';
@@ -63,15 +63,6 @@ function formatAmountWithoutCurrency(value: number) {
 	}).format(Number.isFinite(value) ? value : 0);
 }
 
-function escapeHtml(value: string) {
-	return value
-		.replaceAll('&', '&amp;')
-		.replaceAll('<', '&lt;')
-		.replaceAll('>', '&gt;')
-		.replaceAll('"', '&quot;')
-		.replaceAll("'", '&#39;');
-}
-
 export function VoucherPage() {
 	const { t, i18n } = useTranslation();
 	const isMyanmarLanguage = i18n.language.startsWith('my');
@@ -90,6 +81,7 @@ export function VoucherPage() {
 	const [items, setItems] = useState<VoucherLineItem[]>([]);
 	const [itemForm, setItemForm] = useState<VoucherLineItem>(createLineItem());
 	const [saveStatus, setSaveStatus] = useState<string | null>(null);
+	const [previewOpen, setPreviewOpen] = useState(false);
 	const itemSaveInFlightRef = useRef(false);
 	const canSaveVoucher = infoSubmitted && buyerName.trim() !== '' && voucherDate.trim() !== '' && voucherNumber.trim() !== '';
 
@@ -243,6 +235,27 @@ export function VoucherPage() {
 			.reverse()
 			.join('/')
 		: '-';
+	const previewStrings = isMyanmarLanguage
+		? {
+			title: 'ဘောင်ချာ ကြိုကြည့်ရန်',
+			description: 'ပရင့်မထုတ်ဘဲ ဘောင်ချာအချက်အလက်ကို စစ်ဆေးနိုင်ပါသည်။',
+			close: 'ပိတ်ရန်',
+			subtotal: 'စုစုပေါင်း',
+			discount: 'လျှော့စျေး',
+			total: 'နောက်ဆုံးစုစုပေါင်း',
+			empty: 'ထည့်ထားသော line item မရှိသေးပါ။',
+			note: 'ဤကြိုကြည့်မှုတွင် print လုပ်ဆောင်ချက် မပါဝင်ပါ။',
+		}
+		: {
+			title: 'Voucher preview',
+			description: 'Review the voucher on screen before saving.',
+			close: 'Close preview',
+			subtotal: 'Subtotal',
+			discount: 'Discount',
+			total: 'Total',
+			empty: 'No line items added yet.',
+			note: 'This preview is on-screen only and does not trigger printing.',
+		};
 
 	function displayUnit(value: number) {
 		return value === 1 ? '' : String(value);
@@ -259,166 +272,28 @@ export function VoucherPage() {
 		}));
 	}
 
-	function handlePrintPreview() {
-		const previewWindow = window.open('', '_blank', 'width=1200,height=900');
-		if (!previewWindow) {
-			setSaveStatus('Popup blocked. Please allow popups to use print preview.');
-			return;
-		}
-
-		const previewItemsHtml = items.length
-			? items
-				.map((item, index) => {
-					const quantity = Math.max(1, Number(item.qty || 1));
-					const unit = Number(item.unit || 1);
-					const unit2 = Number(item.unit2 || 1);
-					const unitPrice = Number(item.price || 0);
-					const lineTotal = quantity * unit * unit2 * unitPrice;
-					return `
-						<tr>
-							<td>${index + 1}</td>
-							<td>${escapeHtml(item.name)}</td>
-							<td class="num">${quantity}</td>
-							<td class="num">${displayUnit(unit)}</td>
-							<td class="num">${displayUnit(unit2)}</td>
-							<td class="num">${formatAmountWithoutCurrency(unitPrice)}</td>
-							<td class="num strong">${formatAmountWithoutCurrency(lineTotal)}</td>
-						</tr>`;
-					})
-					.join('')
-			: `
-				<tr>
-					<td colspan="7" class="empty">No line items added yet.</td>
-				</tr>`;
-
-		const printHtml = `
-			<!doctype html>
-			<html>
-			<head>
-				<meta charset="utf-8" />
-				<meta name="viewport" content="width=device-width, initial-scale=1" />
-				<title>Print Preview</title>
-				<style>
-					@page { size: A4 portrait; margin: 12mm; }
-					* { box-sizing: border-box; }
-					body {
-						margin: 0;
-						font-family: Arial, sans-serif;
-						color: #111827;
-						background: #fff;
-					}
-					.sheet {
-						width: 210mm;
-						min-height: 297mm;
-						padding: 0;
-						margin: 0 auto;
-					}
-					.header {
-						display: flex;
-						justify-content: space-between;
-						gap: 12px;
-						margin-bottom: 14px;
-						font-size: 12px;
-					}
-					.title {
-						font-size: 18px;
-						font-weight: 700;
-						margin-bottom: 4px;
-					}
-					.meta {
-						font-size: 12px;
-						line-height: 1.5;
-					}
-					table {
-						width: 100%;
-						border-collapse: collapse;
-						font-size: 11px;
-					}
-					thead th {
-						background: #f8fafc;
-						font-size: 10px;
-						text-transform: uppercase;
-						letter-spacing: 0.12em;
-						color: #6b7280;
-					}
-					th, td {
-						border: 1px solid #d1d5db;
-						padding: 7px 8px;
-						vertical-align: top;
-					}
-					.num { text-align: right; white-space: nowrap; }
-					.strong { font-weight: 700; }
-					.empty { text-align: center; color: #6b7280; padding: 18px 8px; }
-					.summary {
-						margin-top: 14px;
-						display: grid;
-						grid-template-columns: 1fr auto;
-						gap: 8px 24px;
-						font-size: 12px;
-					}
-					.footer {
-						margin-top: 18px;
-						font-size: 11px;
-						color: #6b7280;
-					}
-					@media print {
-						body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-					}
-				</style>
-			</head>
-			<body>
-				<div class="sheet">
-					<div class="header">
-						<div>
-							<div class="title">Voucher Print Preview</div>
-							<div class="meta">Buyer: ${escapeHtml(buyerName.trim() || '-')}</div>
-							<div class="meta">Voucher No: ${escapeHtml(voucherNumber || '-')}</div>
-						</div>
-						<div class="meta" style="text-align:right;">
-							<div>Date: ${escapeHtml(summaryDate)}</div>
-							<div>Status: ${infoSubmitted ? 'Submitted info' : 'Draft'}</div>
-						</div>
-					</div>
-
-					<table>
-						<thead>
-							<tr>
-								<th style="width:42px;">No.</th>
-								<th>Name</th>
-								<th style="width:56px;" class="num">Qty</th>
-								<th style="width:54px;" class="num">Unit</th>
-								<th style="width:54px;" class="num">Unit 2</th>
-								<th style="width:88px;" class="num">Unit Price</th>
-								<th style="width:92px;" class="num">Total</th>
-							</tr>
-						</thead>
-						<tbody>
-							${previewItemsHtml}
-						</tbody>
-					</table>
-
-					<div class="summary">
-						<div>Subtotal</div><div class="num strong">${formatAmountWithoutCurrency(subtotal)}</div>
-						<div>Discount</div><div class="num strong">${formatAmountWithoutCurrency(Number(discount || 0))}</div>
-						<div>Total</div><div class="num strong">${formatAmountWithoutCurrency(total)}</div>
-					</div>
-
-					<div class="footer">Use this preview to check paper size and spacing before printing.</div>
-				</div>
-				<script>
-					window.onload = function() {
-						window.focus();
-						window.print();
-					};
-				</script>
-			</body>
-			</html>
-		`;
-
-		previewWindow.document.open();
-		previewWindow.document.write(printHtml);
-		previewWindow.document.close();
+	function handleOpenPreview() {
+		setPreviewOpen(true);
 	}
+
+	const previewItems = items.map((item, index) => {
+		const quantity = Math.max(1, Number(item.qty || 1));
+		const unit = Number(item.unit || 1);
+		const unit2 = Number(item.unit2 || 1);
+		const unitPrice = Number(item.price || 0);
+		const lineTotal = quantity * unit * unit2 * unitPrice;
+
+		return {
+			id: item.id,
+			index: index + 1,
+			name: item.name,
+			quantity,
+			unit,
+			unit2,
+			unitPrice,
+			lineTotal,
+		};
+	});
 
 	function selectSnack(snack: SnackLookupRecord) {
 		setItemForm({
@@ -870,19 +745,92 @@ name: snack.name,
 							</div>
 						</div>
 						<div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">
-							Voucher controls, payment capture, and print preview can live here once the form is connected.
+							Voucher controls, payment capture, and preview review can live here once the form is connected.
 						</div>
 						{snackStatus ? <div className="text-sm text-rose-600">{snackStatus}</div> : null}
 						<div className="flex gap-3">
 							<Button type="button" onClick={handleSaveVoucher}>Save voucher</Button>
-							<Button type="button" variant="secondary" onClick={handlePrintPreview}>
-								Print preview
+							<Button type="button" variant="secondary" onClick={handleOpenPreview}>
+								Preview voucher
 							</Button>
 						</div>
 						{saveStatus ? <div className="text-sm text-slate-600">{saveStatus}</div> : null}
 					</CardContent>
 				</Card>
 			</div>
+
+			<Modal
+				open={previewOpen}
+				onClose={() => setPreviewOpen(false)}
+				title={previewStrings.title}
+				description={previewStrings.description}
+				className="max-w-6xl"
+				footer={
+					<Button type="button" variant="secondary" onClick={() => setPreviewOpen(false)}>
+						{previewStrings.close}
+					</Button>
+				}
+			>
+				<div className="space-y-4">
+					<div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+						<div className="flex flex-wrap items-center justify-between gap-3">
+							<span>
+								{t('voucher.summary.buyer_name')} - {buyerName.trim() || '-'}
+							</span>
+							<span>
+								{t('voucher.summary.voucher_number')} {voucherNumber || '-'}
+							</span>
+							<span className="text-right">
+								{t('voucher.summary.date')} {summaryDate}
+							</span>
+						</div>
+					</div>
+
+					<div className="overflow-auto rounded-2xl border border-slate-200 bg-white">
+						<div className={`grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 ${isMyanmarLanguage ? 'text-[11px] font-bold tracking-[0.08em]' : ''}`}>
+							<div className="border-r border-slate-200 px-3 py-3 text-center">{t('voucher.summary.table.no')}</div>
+							<div className={`border-r border-slate-200 px-4 py-3 ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.name')}</div>
+							<div className={`border-r border-slate-200 px-4 py-3 text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.qty')}</div>
+							<div className={`border-r border-slate-200 px-4 py-3 text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit')}</div>
+							<div className={`border-r border-slate-200 px-4 py-3 text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit2')}</div>
+							<div className={`border-r border-slate-200 px-4 py-3 text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit_price')}</div>
+							<div className={`px-4 py-3 text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.total')}</div>
+						</div>
+						<div className="divide-y divide-slate-200">
+							{previewItems.length ? previewItems.map((item) => (
+								<div key={item.id} className="grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] text-sm">
+									<div className="border-r border-slate-200 px-3 py-3 text-center font-medium text-slate-700">{item.index}</div>
+									<div className="border-r border-slate-200 px-4 py-3 font-medium text-slate-900">{item.name}</div>
+									<div className="border-r border-slate-200 px-4 py-3 text-right text-slate-600">{item.quantity}</div>
+									<div className="border-r border-slate-200 px-4 py-3 text-right text-slate-600">{displayUnit(item.unit)}</div>
+									<div className="border-r border-slate-200 px-4 py-3 text-right text-slate-600">{displayUnit(item.unit2)}</div>
+									<div className="border-r border-slate-200 px-4 py-3 text-right text-slate-600">{formatAmountWithoutCurrency(item.unitPrice)}</div>
+									<div className="px-4 py-3 text-right font-medium text-slate-900">{formatAmountWithoutCurrency(item.lineTotal)}</div>
+								</div>
+							)) : (
+								<div className="px-4 py-5 text-sm text-slate-500">{previewStrings.empty}</div>
+							)}
+						</div>
+					</div>
+
+					<div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 md:max-w-md md:ml-auto">
+						<div className="flex items-center justify-between">
+							<span>{previewStrings.subtotal}</span>
+							<span className="font-medium text-slate-900">{formatAmountWithoutCurrency(subtotal)}</span>
+						</div>
+						<div className="flex items-center justify-between">
+							<span>{previewStrings.discount}</span>
+							<span className="font-medium text-slate-900">{formatAmountWithoutCurrency(discountAmount)}</span>
+						</div>
+						<div className="flex items-center justify-between border-t border-slate-200 pt-3 text-base font-semibold text-slate-900">
+							<span>{previewStrings.total}</span>
+							<span>{formatAmountWithoutCurrency(total)}</span>
+						</div>
+					</div>
+
+					<p className="text-sm text-slate-500">{previewStrings.note}</p>
+				</div>
+			</Modal>
 		</div>
 	);
 }
