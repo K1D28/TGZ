@@ -1,0 +1,11 @@
+{
+  "dashboard": { "title": "Dashboard", "overview": "Manual admin view for sales, vouchers, and top items.", "overview_label": "Overview", "today": "Today", "all_time": "All Time" },
+  "snacks": { "title": "Snacks", "description": "Keep snack names in a simple, usable admin form.", "details_title": "Snack details", "details_description": "Enter snack names by hand.", "fields": { "name": "Snack name" } },
+  "actions": { "add": "Add snack", "save": "Save snack", "clear": "Clear form" },
+  "filters": { "voucher_number": "Voucher number", "date_from": "Date from", "date_to": "Date to" },
+  "nav": { "dashboard": "Dashboard", "snacks": "Snacks", "new_voucher": "New Voucher", "sales_history": "Sales History" },
+  "ui": { "quick_note": "Quick note", "quick_note_text": "This sample keeps the layout simple, readable, and easy to scan." },
+  "voucher": { "fields": { "buyer_name": "Buyer name", "voucher_date": "Voucher date", "voucher_number": "Voucher number", "item_name": "Item name", "item_search_placeholder": "Type to search snacks" }, "summary": { "buyer_name": "Buyer name", "voucher_number": "VC no.", "date": "DATE", "table": { "no": "No.", "name": "Name", "qty": "Qty", "unit": "Unit", "unit2": "Unit 2", "unit_price": "Unit Price", "total": "Total" } } },
+  "user": { "name": "Admin", "sample": "Sample user", "menu_label": "Admin", "profile": "Profile", "settings": "Settings", "sign_out": "Sign out", "logout": "Logout" },
+  "header": { "title": "Sample Dashboard", "subtitle": "Clean route layout for snack, voucher, and report screens." }
+}
