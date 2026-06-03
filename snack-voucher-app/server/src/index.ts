@@ -30,7 +30,7 @@ type VoucherPayload = {
   voucherNumber?: string;
   voucherDate?: string;
   buyerName?: string | null;
-  status?: 'draft' | 'pending';
+  status?: 'draft' | 'complete';
   discount?: number | string;
   items?: VoucherItemPayload[];
 };
@@ -40,7 +40,7 @@ type VoucherRow = {
   voucher_number: string;
   voucher_date: string;
   buyer_name: string | null;
-  status: 'draft' | 'paid' | 'pending' | 'void';
+  status: 'draft' | 'complete';
   subtotal: number;
   discount: number;
   total: number;
@@ -378,7 +378,7 @@ app.patch('/api/vouchers/:id', async (request: Request, response: Response) => {
   const payload = request.body as VoucherPayload;
   const update: Partial<VoucherRow> = {};
   if ((payload as any).buyerName !== undefined) update.buyer_name = (payload as any).buyerName?.trim() || null;
-  if ((payload as any).status !== undefined) update.status = (payload as any).status === 'pending' ? 'pending' : 'draft';
+  if ((payload as any).status !== undefined) update.status = (payload as any).status === 'complete' ? 'complete' : 'draft';
   if (payload.voucherDate !== undefined) update.voucher_date = payload.voucherDate as unknown as string;
   if (payload.voucherNumber !== undefined) update.voucher_number = (payload.voucherNumber ?? '').trim();
   if (payload.discount !== undefined) update.discount = Math.max(0, toNumber(payload.discount, 0));
@@ -470,7 +470,7 @@ app.post('/api/vouchers', async (request: Request<unknown, unknown, VoucherPaylo
   const voucherNumber = (payload.voucherNumber ?? '').trim();
   const voucherDate = payload.voucherDate || new Date().toISOString().slice(0, 10);
   const buyerName = payload.buyerName?.trim() || null;
-  const status = payload.status === 'pending' ? 'pending' : 'draft';
+  const status = payload.status === 'complete' ? 'complete' : 'draft';
   const discount = Math.max(0, toNumber(payload.discount, 0));
   const items = Array.isArray(payload.items) ? payload.items : [];
 

@@ -619,7 +619,7 @@ name: snack.name,
 				voucherNumber: finalVoucherNumber,
 				voucherDate: finalVoucherDate,
 				buyerName,
-				status: 'pending' as const,
+				status: 'complete' as const,
 				discount: Number(discount || 0),
 				items: buildVoucherItemInputs(items),
 			};

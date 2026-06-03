@@ -1,7 +1,7 @@
 export type Database = {
 	public: {
 		Enums: {
-			voucher_status: 'draft' | 'paid' | 'pending' | 'void';
+			voucher_status: 'draft' | 'complete';
 		};
 		Tables: {
 			snacks: {
