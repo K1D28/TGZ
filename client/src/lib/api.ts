@@ -54,7 +54,11 @@ export type VoucherApiInput = {
 	items: VoucherLineItemInput[];
 };
 
-const apiBase = import.meta.env.VITE_API_BASE_URL ?? '/api';
+const apiBase = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? '/api' : '');
+
+if (!apiBase) {
+	throw new Error('Missing VITE_API_BASE_URL. Set it in Vercel to your Railway backend URL, e.g. https://your-backend.up.railway.app/api');
+}
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 	const response = await fetch(`${apiBase}${path}`, {
@@ -68,6 +72,15 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 	if (!response.ok) {
 		const message = await response.text();
 		throw new Error(message || `Request failed with ${response.status}`);
+	}
+
+	const contentType = response.headers.get('content-type') ?? '';
+	if (!contentType.includes('application/json')) {
+		const body = await response.text();
+		throw new Error(
+			`Expected JSON from ${apiBase}${path}, but received ${contentType || 'unknown content type'}. ` +
+				`Check VITE_API_BASE_URL and backend CORS. Body preview: ${body.slice(0, 120)}`,
+		);
 	}
 
 	return response.json() as Promise<T>;
