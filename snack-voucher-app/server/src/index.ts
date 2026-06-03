@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import express from 'express';
 import type { Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
+// For Node.js < 22, supabase realtime needs an explicit WebSocket transport (ws package)
+import WebSocket from 'ws';
 
 dotenv.config();
 
@@ -73,7 +75,11 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.');
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+  realtime: {
+    transport: WebSocket as any,
+  },
+});
 const app = express();
 
 app.use(
