@@ -7,21 +7,22 @@
 3. The starter schema creates `snacks`, `vouchers`, and `voucher_items` with row-level security enabled.
 4. The app client is typed against the starter schema in `client/src/lib/database.types.ts`.
 
-## Deploy frontend on Render
+## Deploy frontend on Vercel
 
-Static Site settings:
+Static Site settings on Vercel:
 
 - Root Directory: `client`
+- Framework Preset: `Vite` (or `Other`)
 - Build Command: `npm install && npm run build`
-- Publish Directory: `dist`
+- Output Directory: `dist`
 
-Environment variables:
+Environment variables to add in Vercel (Production/Preview):
 
-- `VITE_API_BASE_URL=https://your-railway-backend.up.railway.app/api`
-- `VITE_SUPABASE_URL=...`
-- `VITE_SUPABASE_ANON_KEY=...`
+- `VITE_API_BASE_URL` = `https://your-railway-backend.up.railway.app/api`
+- `VITE_SUPABASE_URL` = your Supabase URL
+- `VITE_SUPABASE_ANON_KEY` = your Supabase anon key
 
-After deploy, set backend `CLIENT_ORIGIN` on Railway to your Render URL.
+After deploying on Vercel, update the Railway backend `CLIENT_ORIGIN` to include your Vercel URL (comma-separated with localhost if needed), then redeploy the backend.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
