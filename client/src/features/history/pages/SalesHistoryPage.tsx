@@ -191,6 +191,11 @@ export function SalesHistoryPage() {
 					</head>
 					<body>
 						<div class="sheet">
+							<div style="text-align:center; margin-top:18px; margin-bottom:10px;">
+								<div style="font-size:22px; font-weight:700; line-height:1;">ကိုဝင်းမြင့် + မဝင်နီကျော်</div>
+								<div style="font-size:16px; font-weight:600;">မုန့်မျိုးစုံ ရောင်းဝယ်ရေး</div>
+								<div style="font-size:12px; font-weight:500; margin-top:6px;">Phone number - 09-409 611 449, 09-895 480 600</div>
+							</div>
 							<div class="header">
 								<div>
 									<div class="meta">${escapeHtml(t('voucher.summary.buyer_name'))}: ${escapeHtml(voucher.buyer_name || '-')}</div>

@@ -36,6 +36,7 @@ type VoucherDraftRecord = VoucherApiRecord & {
 function buildVoucherNumberForDate(
 	dateValue: string,
 	voucherIndex: Array<{ id: string; voucher_number: string; voucher_date: string; status: VoucherApiRecord['status'] }>,
+	excludeVoucherId?: string | null,
 ) {
 	const dateParts = dateValue.split('-');
 	if (dateParts.length !== 3) return '';
@@ -45,7 +46,7 @@ function buildVoucherNumberForDate(
 	const prefix = `WM-${dateCode}-`;
 
 	const usedSerials = voucherIndex
-		.filter((record) => record.voucher_date === dateValue && record.voucher_number.startsWith(prefix))
+		.filter((record) => record.id !== excludeVoucherId && record.voucher_date === dateValue && record.voucher_number.startsWith(prefix))
 		.map((record) => {
 			const serialText = record.voucher_number.slice(prefix.length);
 			const serial = Number(serialText);
@@ -54,6 +55,16 @@ function buildVoucherNumberForDate(
 
 	const nextSerial = String((usedSerials.length ? Math.max(...usedSerials) : 0) + 1).padStart(2, '0');
 	return `${prefix}${nextSerial}`;
+}
+
+function voucherNumberMatchesDate(voucherNumberValue: string, dateValue: string) {
+	const dateParts = dateValue.split('-');
+	if (dateParts.length !== 3) return false;
+
+	const [year, month, day] = dateParts;
+	const dateCode = `${day}${month}${year.slice(-2)}`;
+	const prefix = `WM-${dateCode}-`;
+	return voucherNumberValue.startsWith(prefix);
 }
 
 function formatAmountWithoutCurrency(value: number) {
@@ -195,8 +206,6 @@ export function VoucherPage() {
 
 	useEffect(() => {
 		if (restoringDraft) return;
-		// If a draft exists we should not change the reserved number.
-		if (draftVoucherId) return;
 
 		if (!voucherDate) {
 			setVoucherNumber('');
@@ -204,13 +213,15 @@ export function VoucherPage() {
 			return;
 		}
 
-		// Update number when it's empty or was auto-generated previously.
-		if (voucherNumber.trim() === '' || voucherNumberAuto) {
-			const nextVoucherNumber = buildVoucherNumberForDate(voucherDate, voucherIndex);
+		const numberDoesNotMatchDate = voucherNumber.trim() !== '' && !voucherNumberMatchesDate(voucherNumber, voucherDate);
+
+		// Update number when empty, previously auto-generated, or when date no longer matches current number.
+		if (voucherNumber.trim() === '' || voucherNumberAuto || numberDoesNotMatchDate) {
+			const nextVoucherNumber = buildVoucherNumberForDate(voucherDate, voucherIndex, draftVoucherId);
 			if (nextVoucherNumber && voucherNumber !== nextVoucherNumber) {
 				setVoucherNumber(nextVoucherNumber);
-				setVoucherNumberAuto(true);
 			}
+			setVoucherNumberAuto(true);
 		}
 	}, [voucherDate, voucherIndex, restoringDraft, draftVoucherId, voucherNumber, voucherNumberAuto]);
 
@@ -360,7 +371,8 @@ name: snack.name,
 			return;
 		}
 
-		const nextVoucherNumber = voucherNumber || buildVoucherNumberForDate(voucherDate, voucherIndex);
+		const canReuseCurrentVoucherNumber = voucherNumber.trim() !== '' && voucherNumberMatchesDate(voucherNumber, voucherDate);
+		const nextVoucherNumber = canReuseCurrentVoucherNumber ? voucherNumber : buildVoucherNumberForDate(voucherDate, voucherIndex, draftVoucherId);
 		if (!nextVoucherNumber) {
 			setSaveStatus('Select a valid voucher date first.');
 			return;
@@ -489,7 +501,8 @@ name: snack.name,
 		try {
 			setSaveStatus(null);
 			const finalVoucherDate = voucherDate;
-			const finalVoucherNumber = voucherNumber || buildVoucherNumberForDate(finalVoucherDate, voucherIndex);
+			const canReuseCurrentVoucherNumber = voucherNumber.trim() !== '' && voucherNumberMatchesDate(voucherNumber, finalVoucherDate);
+			const finalVoucherNumber = canReuseCurrentVoucherNumber ? voucherNumber : buildVoucherNumberForDate(finalVoucherDate, voucherIndex, draftVoucherId);
 			const payload = {
 				voucherNumber: finalVoucherNumber,
 				voucherDate: finalVoucherDate,
@@ -771,64 +784,62 @@ name: snack.name,
 					</Button>
 				}
 			>
-				<div className="space-y-4">
-					<div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-						<div className="flex flex-wrap items-center justify-between gap-3">
-							<span>
-								{t('voucher.summary.buyer_name')} - {buyerName.trim() || '-'}
-							</span>
-							<span>
-								{t('voucher.summary.voucher_number')} {voucherNumber || '-'}
-							</span>
-							<span className="text-right">
-								{t('voucher.summary.date')} {summaryDate}
-							</span>
+				<div className="mx-auto w-full max-w-4xl space-y-3 bg-white px-6 pb-6 pt-4 text-slate-900">
+					<div className="text-center mt-4 mb-2">
+						<div className="text-2xl font-extrabold leading-tight">ကိုဝင်းမြင့် + မဝင်နီကျော်</div>
+						<div className="text-lg font-semibold">မုန့်မျိုးစုံ ရောင်းဝယ်ရေး</div>
+						<div className="text-[12px] font-medium mt-2">Phone number - 09-409 611 449, 09-895 480 600</div>
+					</div>
+
+					<div className="flex items-start justify-between gap-4 text-[12px] text-slate-800">
+						<div className="space-y-1">
+							<div>
+								{t('voucher.summary.buyer_name')}: {buyerName.trim() || '-'}
+							</div>
+							<div>
+								{t('voucher.summary.voucher_number')}: {voucherNumber || '-'}
+							</div>
+						</div>
+						<div className="text-right">
+							{t('voucher.summary.date')}: {summaryDate}
 						</div>
 					</div>
 
-					<div className="overflow-auto rounded-2xl border border-slate-200 bg-white">
-						<div className={`grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 ${isMyanmarLanguage ? 'text-[11px] font-bold tracking-[0.08em]' : ''}`}>
-							<div className="border-r border-slate-200 px-3 py-3 text-center">{t('voucher.summary.table.no')}</div>
-							<div className={`border-r border-slate-200 px-4 py-3 ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.name')}</div>
-							<div className={`border-r border-slate-200 px-4 py-3 text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.qty')}</div>
-							<div className={`border-r border-slate-200 px-4 py-3 text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit')}</div>
-							<div className={`border-r border-slate-200 px-4 py-3 text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit2')}</div>
-							<div className={`border-r border-slate-200 px-4 py-3 text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit_price')}</div>
-							<div className={`px-4 py-3 text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.total')}</div>
+					<div className="overflow-auto border border-slate-300">
+						<div className="grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] border-b border-slate-300 bg-slate-50 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+							<div className="border-r border-slate-300 px-3 py-2 text-center">{t('voucher.summary.table.no')}</div>
+							<div className="border-r border-slate-300 px-4 py-2">{t('voucher.summary.table.name')}</div>
+							<div className="border-r border-slate-300 px-4 py-2 text-right">{t('voucher.summary.table.qty')}</div>
+							<div className="border-r border-slate-300 px-4 py-2 text-right">{t('voucher.summary.table.unit')}</div>
+							<div className="border-r border-slate-300 px-4 py-2 text-right">{t('voucher.summary.table.unit2')}</div>
+							<div className="border-r border-slate-300 px-4 py-2 text-right">{t('voucher.summary.table.unit_price')}</div>
+							<div className="px-4 py-2 text-right">{t('voucher.summary.table.total')}</div>
 						</div>
-						<div className="divide-y divide-slate-200">
+						<div className="divide-y divide-slate-300">
 							{previewItems.length ? previewItems.map((item) => (
-								<div key={item.id} className="grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] text-sm">
-									<div className="border-r border-slate-200 px-3 py-3 text-center font-medium text-slate-700">{item.index}</div>
-									<div className="border-r border-slate-200 px-4 py-3 font-medium text-slate-900">{item.name}</div>
-									<div className="border-r border-slate-200 px-4 py-3 text-right text-slate-600">{item.quantity}</div>
-									<div className="border-r border-slate-200 px-4 py-3 text-right text-slate-600">{displayUnit(item.unit)}</div>
-									<div className="border-r border-slate-200 px-4 py-3 text-right text-slate-600">{displayUnit(item.unit2)}</div>
-									<div className="border-r border-slate-200 px-4 py-3 text-right text-slate-600">{formatAmountWithoutCurrency(item.unitPrice)}</div>
-									<div className="px-4 py-3 text-right font-medium text-slate-900">{formatAmountWithoutCurrency(item.lineTotal)}</div>
+								<div key={item.id} className="grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] text-[11px]">
+									<div className="border-r border-slate-300 px-3 py-2 text-center font-medium text-slate-700">{item.index}</div>
+									<div className="border-r border-slate-300 px-4 py-2 font-medium text-slate-900">{item.name}</div>
+									<div className="border-r border-slate-300 px-4 py-2 text-right text-slate-700">{item.quantity}</div>
+									<div className="border-r border-slate-300 px-4 py-2 text-right text-slate-700">{displayUnit(item.unit)}</div>
+									<div className="border-r border-slate-300 px-4 py-2 text-right text-slate-700">{displayUnit(item.unit2)}</div>
+									<div className="border-r border-slate-300 px-4 py-2 text-right text-slate-700">{formatAmountWithoutCurrency(item.unitPrice)}</div>
+									<div className="px-4 py-2 text-right font-semibold text-slate-900">{formatAmountWithoutCurrency(item.lineTotal)}</div>
 								</div>
 							)) : (
-								<div className="px-4 py-5 text-sm text-slate-500">{previewStrings.empty}</div>
+								<div className="px-4 py-4 text-center text-sm text-slate-500">{previewStrings.empty}</div>
 							)}
 						</div>
 					</div>
 
-					<div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 md:max-w-md md:ml-auto">
-						<div className="flex items-center justify-between">
-							<span>{previewStrings.subtotal}</span>
-							<span className="font-medium text-slate-900">{formatAmountWithoutCurrency(subtotal)}</span>
-						</div>
-						<div className="flex items-center justify-between">
-							<span>{previewStrings.discount}</span>
-							<span className="font-medium text-slate-900">{formatAmountWithoutCurrency(discountAmount)}</span>
-						</div>
-						<div className="flex items-center justify-between border-t border-slate-200 pt-3 text-base font-semibold text-slate-900">
-							<span>{previewStrings.total}</span>
-							<span>{formatAmountWithoutCurrency(total)}</span>
-						</div>
+					<div className="ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-8 gap-y-1 pt-2 text-[12px]">
+						<div>{previewStrings.subtotal}</div>
+						<div className="text-right font-semibold">{formatAmountWithoutCurrency(subtotal)}</div>
+						<div>{previewStrings.discount}</div>
+						<div className="text-right font-semibold">{formatAmountWithoutCurrency(discountAmount)}</div>
+						<div className="font-semibold">{previewStrings.total}</div>
+						<div className="text-right font-bold">{formatAmountWithoutCurrency(total)}</div>
 					</div>
-
-					<p className="text-sm text-slate-500">{previewStrings.note}</p>
 				</div>
 			</Modal>
 		</div>

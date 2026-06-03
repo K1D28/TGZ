@@ -42,7 +42,7 @@ export function Modal({ open, title, description, onClose, children, footer, cla
 	}
 
 	return createPortal(
-		<div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+		<div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-4 sm:p-6">
 			<button
 				type="button"
 				aria-label="Close modal overlay"
@@ -56,7 +56,7 @@ export function Modal({ open, title, description, onClose, children, footer, cla
 				aria-labelledby="modal-title"
 				aria-describedby={description ? 'modal-description' : undefined}
 				tabIndex={-1}
-				className={`relative z-10 w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl outline-none dark:border-slate-800 dark:bg-slate-900 ${className}`}
+				className={`relative z-10 my-4 flex max-h-[calc(100vh-2rem)] w-full max-w-2xl flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl outline-none dark:border-slate-800 dark:bg-slate-900 ${className}`}
 			>
 				<div className="flex items-start justify-between gap-4">
 					<div>
@@ -79,7 +79,7 @@ export function Modal({ open, title, description, onClose, children, footer, cla
 					</button>
 				</div>
 
-				<div className="mt-6">{children}</div>
+				<div className="mt-6 min-h-0 overflow-y-auto">{children}</div>
 
 				{footer ? <div className="mt-6 flex justify-end gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">{footer}</div> : null}
 			</div>
