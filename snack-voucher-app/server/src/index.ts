@@ -62,6 +62,10 @@ type VoucherItemRow = {
 
 const port = Number(process.env.PORT || 3001);
 const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+const allowedOrigins = clientOrigin
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -72,7 +76,17 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 const app = express();
 
-app.use(cors({ origin: clientOrigin }));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+  }),
+);
 app.use(express.json());
 
 function toNumber(value: number | string | undefined, fallback = 0) {
@@ -464,6 +478,7 @@ app.post('/api/vouchers', async (request: Request<unknown, unknown, VoucherPaylo
     item_name: string;
     quantity: number;
     unit: number;
+    unit2: number;
     unit_price: number;
     line_total: number;
   }> = [];
