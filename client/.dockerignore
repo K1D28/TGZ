@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env.*
+.vite
+.turbo
+.next
+npm-debug.log
+Dockerfile
+.git
+.gitignore
