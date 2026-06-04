@@ -61,10 +61,7 @@ export function AppShell() {
 							<LayoutDashboard className="h-5 w-5" />
 						</span>
 						<span className="leading-tight">
-							<span className="block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-								Sample Admin
-							</span>
-							<span className="block text-sm font-semibold text-slate-900">Snack Voucher</span>
+							<span className="block text-sm font-semibold text-slate-900">{t('app.brand', 'Voucher Generator')}</span>
 						</span>
 					</Link>
 
@@ -97,15 +94,9 @@ export function AppShell() {
 							<LayoutDashboard className="h-6 w-6" />
 						</span>
 						<span>
-							<span className="block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Sample Admin</span>
-							<span className="block text-lg font-semibold text-slate-900">Snack Voucher</span>
+							<span className="block text-lg font-semibold text-slate-900">{t('app.brand', 'Voucher Generator')}</span>
 						</span>
 					</Link>
-
-					<div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-						<p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Navigation</p>
-						<p className="mt-1 text-sm text-slate-600">Sample-only layout and content.</p>
-					</div>
 
 					<nav className="mt-6 space-y-2" aria-label="Main navigation">
 						{navItems.map((item) => {
@@ -142,23 +133,11 @@ export function AppShell() {
 						})}
 					</nav>
 
-					<div className="mt-4 border-t border-slate-200 pt-4">
-						<button
-							type="button"
-							className="flex h-10 w-full items-center justify-center rounded-xl bg-red-500 px-4 text-sm font-semibold text-white transition hover:bg-red-600"
-						>
-							{t('user.logout', 'Logout')}
-						</button>
-					</div>
 				</aside>
 
 				<div className="flex min-h-screen min-w-0 flex-1 flex-col">
 					<header className="border-b border-slate-200 bg-white px-4 py-4 pt-20 lg:px-6 lg:pt-4">
-						<div className="flex flex-wrap items-center justify-between gap-4">
-							<div>
-								<h1 className="text-2xl font-bold tracking-tight text-orange-500">{t('header.title', 'Sample Dashboard')}</h1>
-							</div>
-
+						<div className="flex flex-wrap items-center justify-end gap-4">
 							<div className="flex flex-wrap items-center justify-end gap-3">
 								<div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-600 shadow-sm">
 									<span className="h-2.5 w-2.5 rounded-full bg-orange-500" />

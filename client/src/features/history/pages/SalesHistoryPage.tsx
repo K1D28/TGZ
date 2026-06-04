@@ -28,6 +28,14 @@ function escapeHtml(value: string | null | undefined) {
 		.replaceAll("'", '&#39;');
 }
 
+function displayUnitValue(value: number | string | null | undefined) {
+	const numericValue = Number(value);
+	if (Number.isFinite(numericValue) && numericValue === 1) {
+		return '';
+	}
+	return String(value ?? '');
+}
+
 // History table removed — type previously used for manual rows is no longer needed
 
 export function SalesHistoryPage() {
@@ -40,6 +48,8 @@ export function SalesHistoryPage() {
 	const [detailsLoadingId, setDetailsLoadingId] = useState<string | null>(null);
 	const [detailsErrors, setDetailsErrors] = useState<Record<string, string>>({});
 	const [voucherDetails, setVoucherDetails] = useState<Record<string, VoucherApiRecord & { items: VoucherLineItemRecord[] }>>({});
+	const [selectedVoucherIds, setSelectedVoucherIds] = useState<string[]>([]);
+	const [deleteInProgress, setDeleteInProgress] = useState(false);
 
 	const labels = useMemo(
 		() => ({
@@ -51,16 +61,21 @@ export function SalesHistoryPage() {
 			date: isMyanmarLanguage ? 'ရက်စွဲ' : 'Date',
 			buyer: isMyanmarLanguage ? 'ဝယ်သူအမည်' : 'Buyer name',
 			status: isMyanmarLanguage ? 'အခြေအနေ' : 'Status',
-			total: isMyanmarLanguage ? 'စုစုပေါင်း' : 'Total',
+			total: isMyanmarLanguage ? 'စုစုပေါင်း -' : 'Total -',
 			details: isMyanmarLanguage ? 'အသေးစိတ်' : 'Details',
 			viewDetails: isMyanmarLanguage ? 'အသေးစိတ်ကြည့်ရန်' : 'View details',
 			hideDetails: isMyanmarLanguage ? 'အသေးစိတ်ဖျောက်ရန်' : 'Hide details',
+			selectAll: isMyanmarLanguage ? 'အားလုံးရွေးရန်' : 'Select all',
+			deleteSelected: isMyanmarLanguage ? 'ရွေးထားသောဘောင်ချာများ ဖျက်ရန်' : 'Delete selected vouchers',
+			deleteVoucher: isMyanmarLanguage ? 'ဖျက်ရန်' : 'Delete',
+			deleting: isMyanmarLanguage ? 'ဖျက်နေသည်...' : 'Deleting...',
 			printVoucher: isMyanmarLanguage ? 'ဘောင်ချာ ပုံနှိပ်ရန်' : 'Print voucher',
 			filterHistory: isMyanmarLanguage ? 'မှတ်တမ်း စီစစ်ရန်' : 'Filter history',
 			loading: isMyanmarLanguage ? 'ဘောင်ချာ အသေးစိတ်ကို ဖတ်နေသည်...' : 'Loading voucher summary...',
 			empty: isMyanmarLanguage ? 'ဘောင်ချာ မရှိသေးပါ။' : 'No vouchers loaded yet.',
 			noItems: isMyanmarLanguage ? 'ဤဘောင်ချာတွင် line item မရှိသေးပါ။' : 'No line items found for this voucher.',
-			subtotal: isMyanmarLanguage ? 'စုစုပေါင်း' : 'Subtotal',
+			subtotal: isMyanmarLanguage ? 'စုစုပေါင်း -' : 'Subtotal -',
+			lastPaymentDue: isMyanmarLanguage ? 'ယခင်လက်ကျန်ငွေ -' : 'Last Payment Due -',
 			discount: isMyanmarLanguage ? 'လျှော့စျေး' : 'Discount',
 
 		}),
@@ -75,6 +90,73 @@ export function SalesHistoryPage() {
 				setErrorMessage(error instanceof Error ? error.message : 'Failed to load vouchers');
 			});
 	}, []);
+
+	useEffect(() => {
+		const currentIds = new Set(vouchers.map((voucher) => voucher.id));
+		setSelectedVoucherIds((current) => current.filter((id) => currentIds.has(id)));
+	}, [vouchers]);
+
+	const allVisibleSelected = vouchers.length > 0 && vouchers.every((voucher) => selectedVoucherIds.includes(voucher.id));
+
+	const toggleSelectVoucher = (voucherId: string) => {
+		setSelectedVoucherIds((current) => (current.includes(voucherId) ? current.filter((id) => id !== voucherId) : [...current, voucherId]));
+	};
+
+	const toggleSelectAllVouchers = () => {
+		if (allVisibleSelected) {
+			setSelectedVoucherIds([]);
+			return;
+		}
+		setSelectedVoucherIds(vouchers.map((voucher) => voucher.id));
+	};
+
+	const clearDeletedVoucherState = (deletedIds: string[]) => {
+		const deletedIdSet = new Set(deletedIds);
+		setVouchers((current) => current.filter((voucher) => !deletedIdSet.has(voucher.id)));
+		setSelectedVoucherIds((current) => current.filter((id) => !deletedIdSet.has(id)));
+		setVoucherDetails((current) => {
+			const next = { ...current };
+			for (const id of deletedIds) {
+				delete next[id];
+			}
+			return next;
+		});
+		setDetailsErrors((current) => {
+			const next = { ...current };
+			for (const id of deletedIds) {
+				delete next[id];
+			}
+			return next;
+		});
+		setExpandedVoucherId((current) => (current && deletedIdSet.has(current) ? null : current));
+	};
+
+	const handleDeleteVouchers = async (ids: string[]) => {
+		if (!ids.length || deleteInProgress) return;
+
+		const confirmed = window.confirm(
+			isMyanmarLanguage
+				? `ရွေးထားသော ဘောင်ချာ ${ids.length} ခုကို ဖျက်မှာ သေချာပါသလား?`
+				: `Are you sure you want to delete ${ids.length} selected voucher(s)?`,
+		);
+		if (!confirmed) return;
+
+		setDeleteInProgress(true);
+		setErrorMessage(null);
+		try {
+			if (ids.length === 1) {
+				await api.deleteVoucher(ids[0]);
+				clearDeletedVoucherState(ids);
+			} else {
+				const result = await api.deleteVouchers(ids);
+				clearDeletedVoucherState(result.deletedIds.length ? result.deletedIds : ids);
+			}
+		} catch (error: unknown) {
+			setErrorMessage(error instanceof Error ? error.message : 'Failed to delete voucher(s).');
+		} finally {
+			setDeleteInProgress(false);
+		}
+	};
 
 	const handleToggleDetails = (voucher: VoucherApiRecord) => {
 		if (expandedVoucherId === voucher.id) {
@@ -105,7 +187,7 @@ export function SalesHistoryPage() {
 			});
 	};
 
-		const handlePrintVoucher = async (voucher: VoucherApiRecord) => {
+	const handlePrintVoucher = async (voucher: VoucherApiRecord) => {
 			try {
 				const detail = voucherDetails[voucher.id] ?? (await api.getVoucher(voucher.id));
 				if (!voucherDetails[voucher.id]) {
@@ -125,8 +207,8 @@ export function SalesHistoryPage() {
 								<td class="center">${index + 1}</td>
 								<td>${escapeHtml(item.item_name)}</td>
 								<td class="num">${item.quantity}</td>
-								<td class="num">${item.unit}</td>
-								<td class="num">${item.unit2}</td>
+								<td class="num">${escapeHtml(displayUnitValue(item.unit))}</td>
+								<td class="num">${escapeHtml(displayUnitValue(item.unit2))}</td>
 								<td class="num">${formatAmount(item.unit_price)}</td>
 								<td class="num strong">${formatAmount(item.line_total)}</td>
 							</tr>`)
@@ -221,10 +303,11 @@ export function SalesHistoryPage() {
 								<tbody>${rows}</tbody>
 							</table>
 
-							<div class="summary">
-								<div>${escapeHtml(labels.subtotal)}</div><div class="num strong">${formatAmount(detail.subtotal)}</div>
-								<div>${escapeHtml(labels.discount)}</div><div class="num strong">${formatAmount(detail.discount)}</div>
-								<div>${escapeHtml(labels.total)}</div><div class="num strong">${formatAmount(detail.total)}</div>
+							<div style="margin-top:14px; display:flex; justify-content:space-between; align-items:flex-end; gap:16px;">
+								<div style="font-size:12px; font-weight:700; color:#374151;">${escapeHtml(labels.lastPaymentDue)}</div>
+								<div class="summary" style="margin-top:0;">
+									<div>${escapeHtml(labels.subtotal)}</div><div class="num strong">${formatAmount(detail.subtotal)}</div>
+								</div>
 							</div>
 
 
@@ -245,7 +328,7 @@ export function SalesHistoryPage() {
 			} catch (error) {
 				setErrorMessage(error instanceof Error ? error.message : 'Failed to print voucher.');
 			}
-		};
+	};
 
 	return (
 		<div className="space-y-6">
@@ -265,20 +348,40 @@ export function SalesHistoryPage() {
 					<CardTitle>{labels.filters}</CardTitle>
 				</CardHeader>
 				<CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-					<Input label={t('filters.voucher_number')} placeholder="VCH-20250602-001" value={filters.voucher} onChange={(event) => setFilters((current) => ({ ...current, voucher: event.target.value }))} />
+					<Input label={t('filters.voucher_number')} placeholder="WM-DDMMYY-01" value={filters.voucher} onChange={(event) => setFilters((current) => ({ ...current, voucher: event.target.value }))} />
 					<Input label={t('filters.date_from')} type="date" value={filters.from} onChange={(event) => setFilters((current) => ({ ...current, from: event.target.value }))} />
 					<Input label={t('filters.date_to')} type="date" value={filters.to} onChange={(event) => setFilters((current) => ({ ...current, to: event.target.value }))} />
 				</CardContent>
 			</Card>
 
 			<Card>
-				<CardHeader>
+				<CardHeader className="flex flex-wrap items-center justify-between gap-3">
 					<CardTitle>{labels.recent}</CardTitle>
+					{selectedVoucherIds.length > 0 ? (
+						<Button
+							type="button"
+							variant="primary"
+							onClick={() => void handleDeleteVouchers(selectedVoucherIds)}
+							disabled={deleteInProgress}
+							className="!h-auto min-h-10 whitespace-normal bg-rose-600 px-3 py-2 text-center text-xs leading-tight text-white hover:bg-rose-700"
+						>
+							{deleteInProgress ? labels.deleting : `${labels.deleteSelected} (${selectedVoucherIds.length})`}
+						</Button>
+					) : null}
 				</CardHeader>
 				<CardContent className="overflow-hidden p-0">
 					{errorMessage ? <div className="px-4 py-5 text-sm text-rose-600">{errorMessage}</div> : null}
 					<div className="divide-y divide-slate-200">
-						<div className={`grid grid-cols-6 gap-3 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 ${isMyanmarLanguage ? 'tracking-normal' : ''}`}>
+						<div className={`grid grid-cols-[40px_1.2fr_1fr_1.2fr_1fr_1fr_1fr] gap-3 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 ${isMyanmarLanguage ? 'tracking-normal' : ''}`}>
+							<div className="flex items-center justify-center">
+								<input
+									type="checkbox"
+									checked={allVisibleSelected}
+									onChange={toggleSelectAllVouchers}
+									aria-label={labels.selectAll}
+									className="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-400"
+								/>
+							</div>
 							<div>{t('voucher.summary.voucher_number')}</div>
 							<div>{t('voucher.summary.date')}</div>
 							<div>{t('voucher.summary.buyer_name')}</div>
@@ -295,17 +398,37 @@ export function SalesHistoryPage() {
 
 							return (
 								<div key={voucher.id}>
-									<div className="grid grid-cols-6 gap-3 px-4 py-4 text-sm">
+									<div className="grid grid-cols-[40px_1.2fr_1fr_1.2fr_1fr_1fr_1fr] gap-3 px-4 py-4 text-sm">
+										<div className="flex items-center justify-center">
+											<input
+												type="checkbox"
+												checked={selectedVoucherIds.includes(voucher.id)}
+												onChange={() => toggleSelectVoucher(voucher.id)}
+												aria-label={`${labels.voucherNumber} ${voucher.voucher_number}`}
+												className="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-400"
+											/>
+										</div>
 										<div className="font-medium text-slate-900">{voucher.voucher_number}</div>
 										<div className="text-slate-600">{displayDate}</div>
 										<div className="text-slate-700">{voucher.buyer_name || '-'}</div>
 										<div className="text-right text-slate-900 capitalize">{voucher.status}</div>
 										<div className="text-right text-slate-900">{formatAmount(voucher.total)}</div>
 										<div className="flex justify-end">
-											<Button type="button" variant="secondary" className="h-8 rounded-lg px-3 text-xs" onClick={() => handleToggleDetails(voucher)}>
-												{isExpanded ? labels.hideDetails : labels.viewDetails}
-												{isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-											</Button>
+											<div className="flex gap-2">
+												<Button type="button" variant="secondary" className="h-8 rounded-lg px-3 text-xs" onClick={() => handleToggleDetails(voucher)}>
+													{isExpanded ? labels.hideDetails : labels.viewDetails}
+													{isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+												</Button>
+												<Button
+													type="button"
+													variant="primary"
+													className="!h-auto min-h-8 rounded-lg bg-rose-600 px-3 py-1.5 text-xs text-white hover:bg-rose-700"
+													onClick={() => void handleDeleteVouchers([voucher.id])}
+													disabled={deleteInProgress}
+												>
+													{labels.deleteVoucher}
+												</Button>
+											</div>
 										</div>
 									</div>
 
@@ -359,8 +482,8 @@ export function SalesHistoryPage() {
 																		<div className="text-center font-medium text-slate-700">{index + 1}</div>
 																		<div className="font-medium text-slate-900">{item.item_name}</div>
 																		<div className="text-right text-slate-600">{item.quantity}</div>
-																		<div className="text-right text-slate-600">{item.unit}</div>
-																		<div className="text-right text-slate-600">{item.unit2}</div>
+																		<div className="text-right text-slate-600">{displayUnitValue(item.unit)}</div>
+																		<div className="text-right text-slate-600">{displayUnitValue(item.unit2)}</div>
 																		<div className="text-right text-slate-600">{formatAmount(item.unit_price)}</div>
 																		<div className="text-right font-medium text-slate-900">{formatAmount(item.line_total)}</div>
 																	</div>
@@ -368,18 +491,13 @@ export function SalesHistoryPage() {
 															</div>
 														</div>
 
-														<div className="ml-auto grid w-full gap-2 rounded-xl bg-slate-50 p-3 text-sm md:w-80">
-															<div className="flex items-center justify-between">
-																<span className="text-slate-600">{labels.subtotal}</span>
-																<span className="font-medium text-slate-900">{formatAmount(detail.subtotal)}</span>
-															</div>
-															<div className="flex items-center justify-between">
-																<span className="text-slate-600">{labels.discount}</span>
-																<span className="font-medium text-slate-900">{formatAmount(detail.discount)}</span>
-															</div>
-															<div className="flex items-center justify-between border-t border-slate-200 pt-2">
-																<span className="font-semibold text-slate-700">{labels.total}</span>
-																<span className="text-base font-bold text-slate-900">{formatAmount(detail.total)}</span>
+														<div className="flex items-end justify-between gap-4">
+															<div className="text-sm font-semibold text-slate-700">{labels.lastPaymentDue}</div>
+															<div className="ml-auto grid w-full gap-2 rounded-xl bg-slate-50 p-3 text-sm md:w-80">
+																<div className="flex items-center justify-between">
+																	<span className="text-slate-600">{labels.subtotal}</span>
+																	<span className="font-medium text-slate-900">{formatAmount(detail.subtotal)}</span>
+																</div>
 															</div>
 														</div>
 													</div>

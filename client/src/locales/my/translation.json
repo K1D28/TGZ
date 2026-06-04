@@ -27,9 +27,10 @@
     "saving": "သိမ်းနေသည်..."
   },
   "filters": { "voucher_number": "ဘောင်ချာ အမှတ်", "date_from": "အစနေ့", "date_to": "အဆုံးနေ့" },
+  "app": { "brand": "ဘောင်ချာထုတ်ရန်" },
   "nav": { "dashboard": "ဒက်ရှ်ဘုတ်", "snacks": "မုန့်ပစ္စည်းများ", "new_voucher": "ဘောင်ချာ အသစ်", "sales_history": "ရောင်းအားမှတ်တမ်း" },
   "ui": { "quick_note": "မှတ်ချက်", "quick_note_text": "ဤနမူနာသည် အမြင်ရိုးရှင်း၍ ဖတ်ရလຽယີອງ" },
-  "voucher": { "fields": { "buyer_name": "ဝယ်သူအမည်", "voucher_date": "ဘောင်ချာရက်စွဲ", "voucher_number": "ဘောင်ချာနံပါတ်", "item_name": "ပစ္စည်းအမျိုးအမည်", "item_search_placeholder": "မုန့်များ ရှာရန် ရိုက်ထည့်ပါ" }, "summary": { "buyer_name": "ဝယ်သူအမည်", "voucher_number": "ဘောင်ချာအမှတ်", "date": "ရက်စွဲ", "table": { "no": "နံပါတ်", "name": "ပစ္စည်းအမျိုးအမည်", "qty": "Qty", "unit": "အရေတွက်", "unit2": "အထုပ်ရေ", "unit_price": "တစ်ခုစျေး", "total": "စုစုပေါင်း" } } },
+  "voucher": { "fields": { "buyer_name": "ဝယ်သူအမည်", "voucher_date": "ဘောင်ချာရက်စွဲ", "voucher_number": "ဘောင်ချာနံပါတ်", "item_name": "ပစ္စည်းအမျိုးအမည်", "item_search_placeholder": "မုန့်များ ရှာရန် ရိုက်ထည့်ပါ" }, "summary": { "buyer_name": "ဝယ်သူအမည်", "voucher_number": "ဘောင်ချာအမှတ်", "date": "ရက်စွဲ", "table": { "no": "နံပါတ်", "name": "ပစ္စည်းအမျိုးအမည်", "qty": "Qty", "unit": "အရေတွက်", "unit2": "အထုပ်ရေ", "unit_price": "စျေးနှုန်း", "total": "စုစုပေါင်း -" } } },
   "user": { "name": "အຳພະກັນ", "sample": "ນຳໜ້າ ພວກເຂົາ", "menu_label": "ຄວາມສະດວກ", "profile": "ຂໍ້ມູນສ່ວນຕົວ", "settings": "ການຕັ້ງຄ່າ", "sign_out": "ອອກຈາ", "logout": "ອອກຈາ" },
   "header": { "title": "နမနဖတတ", "subtitle": "သကလပစစညမ" }
 }

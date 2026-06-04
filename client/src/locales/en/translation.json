@@ -21,6 +21,7 @@
     "saving": "Saving..."
   },
   "filters": { "voucher_number": "Voucher number", "date_from": "Date from", "date_to": "Date to" },
+  "app": { "brand": "Voucher Generator" },
   "nav": { "dashboard": "Dashboard", "snacks": "Snacks", "new_voucher": "New Voucher", "sales_history": "Sales History" },
   "ui": { "quick_note": "Quick note", "quick_note_text": "This sample keeps the layout simple, readable, and easy to scan." },
   "voucher": { "fields": { "buyer_name": "Buyer name", "voucher_date": "Voucher date", "voucher_number": "Voucher number", "item_name": "Item name", "item_search_placeholder": "Type to search snacks" }, "summary": { "buyer_name": "Buyer name", "voucher_number": "VC no.", "date": "DATE", "table": { "no": "No.", "name": "Name", "qty": "Qty", "unit": "Unit", "unit2": "Unit 2", "unit_price": "Unit Price", "total": "Total" } } },

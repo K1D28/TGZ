@@ -35,6 +35,10 @@ type VoucherPayload = {
   items?: VoucherItemPayload[];
 };
 
+type VoucherBulkDeletePayload = {
+  ids?: string[];
+};
+
 type VoucherRow = {
   id: string;
   voucher_number: string;
@@ -463,6 +467,27 @@ app.delete('/api/vouchers/:id', async (request: Request, response: Response) => 
   }
 
   response.status(204).end();
+});
+
+app.post('/api/vouchers/bulk-delete', async (request: Request<unknown, unknown, VoucherBulkDeletePayload>, response: Response) => {
+  const rawIds = Array.isArray(request.body?.ids) ? request.body.ids : [];
+  const ids = Array.from(new Set(rawIds.map((id) => String(id || '').trim()).filter(Boolean)));
+
+  if (!ids.length) {
+    response.status(400).json({ error: 'At least one voucher id is required.' });
+    return;
+  }
+
+  const { error } = await supabase.from('vouchers').delete().in('id', ids);
+  if (error) {
+    response.status(500).json({ error: error.message });
+    return;
+  }
+
+  response.json({
+    deletedIds: ids,
+    deletedCount: ids.length,
+  });
 });
 
 app.post('/api/vouchers', async (request: Request<unknown, unknown, VoucherPayload>, response: Response) => {

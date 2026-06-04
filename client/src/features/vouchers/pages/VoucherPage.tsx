@@ -251,7 +251,7 @@ export function VoucherPage() {
 			title: 'ဘောင်ချာ ကြိုကြည့်ရန်',
 			description: 'ပရင့်မထုတ်ဘဲ ဘောင်ချာအချက်အလက်ကို စစ်ဆေးနိုင်ပါသည်။',
 			close: 'ပိတ်ရန်',
-			subtotal: 'စုစုပေါင်း',
+			subtotal: 'စုစုပေါင်း -',
 			discount: 'လျှော့စျေး',
 			total: 'နောက်ဆုံးစုစုပေါင်း',
 			empty: 'ထည့်ထားသော line item မရှိသေးပါ။',
@@ -267,6 +267,7 @@ export function VoucherPage() {
 			empty: 'No line items added yet.',
 			note: 'This preview is on-screen only and does not trigger printing.',
 		};
+	const lastPaymentDueLabel = isMyanmarLanguage ? 'ယခင်လက်ကျန်ငွေ -' : 'Last Payment Due -';
 
 	function displayUnit(value: number) {
 		return value === 1 ? '' : String(value);
@@ -741,20 +742,25 @@ name: snack.name,
 								</div>
 							</div>
 						</div>
-						<div className="mt-auto grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
-							<div className="flex items-center justify-between">
-								<span>Subtotal</span>
-								<span className="font-medium text-slate-900">{formatAmountWithoutCurrency(subtotal)}</span>
-							</div>
-							<div className="flex items-center justify-between">
-								<span>Discount</span>
-								<div className="w-32">
-									<Input value={discount} onChange={(event) => setDiscount(event.target.value)} />
+						<div className="mt-auto rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+							<div className="flex items-end justify-between gap-6">
+								<div className="pb-1 text-sm font-semibold text-slate-700">{lastPaymentDueLabel}</div>
+								<div className="grid w-full max-w-xs gap-3">
+									<div className="flex items-center justify-between">
+										<span>Subtotal</span>
+										<span className="font-medium text-slate-900">{formatAmountWithoutCurrency(subtotal)}</span>
+									</div>
+									<div className="flex items-center justify-between">
+										<span>Discount</span>
+										<div className="w-32">
+											<Input value={discount} onChange={(event) => setDiscount(event.target.value)} />
+										</div>
+									</div>
+									<div className="flex items-center justify-between border-t border-slate-200 pt-3 text-base font-semibold text-slate-900">
+										<span>Total</span>
+										<span className="font-semibold text-slate-900">{formatAmountWithoutCurrency(total)}</span>
+									</div>
 								</div>
-							</div>
-							<div className="flex items-center justify-between border-t border-slate-200 pt-3 text-base font-semibold text-slate-900">
-								<span>Total</span>
-								<span className="font-semibold text-slate-900">{formatAmountWithoutCurrency(total)}</span>
 							</div>
 						</div>
 						<div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">
@@ -832,13 +838,12 @@ name: snack.name,
 						</div>
 					</div>
 
-					<div className="ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-8 gap-y-1 pt-2 text-[12px]">
-						<div>{previewStrings.subtotal}</div>
-						<div className="text-right font-semibold">{formatAmountWithoutCurrency(subtotal)}</div>
-						<div>{previewStrings.discount}</div>
-						<div className="text-right font-semibold">{formatAmountWithoutCurrency(discountAmount)}</div>
-						<div className="font-semibold">{previewStrings.total}</div>
-						<div className="text-right font-bold">{formatAmountWithoutCurrency(total)}</div>
+					<div className="flex items-end justify-between gap-6 pt-2">
+						<div className="text-[12px] font-semibold text-slate-700">{lastPaymentDueLabel}</div>
+						<div className="ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-8 gap-y-1 text-[12px]">
+							<div>{previewStrings.subtotal}</div>
+							<div className="text-right font-semibold">{formatAmountWithoutCurrency(subtotal)}</div>
+						</div>
 					</div>
 				</div>
 			</Modal>

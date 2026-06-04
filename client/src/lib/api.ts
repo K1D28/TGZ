@@ -54,6 +54,11 @@ export type VoucherApiInput = {
 	items: VoucherLineItemInput[];
 };
 
+export type VoucherBulkDeleteResponse = {
+	deletedIds: string[];
+	deletedCount: number;
+};
+
 const apiBase = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? '/api' : 'https://tgz-production.up.railway.app/api');
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -106,5 +111,6 @@ export const api = {
 		}
 		return;
 	},
+	deleteVouchers: (ids: string[]) => requestJson<VoucherBulkDeleteResponse>('/vouchers/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
 	listSnacksForLookup: () => requestJson<SnackLookupRecord[]>('/snacks'),
 };
