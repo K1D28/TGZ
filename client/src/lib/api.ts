@@ -41,6 +41,7 @@ export type VoucherApiRecord = {
 	subtotal: number;
 	discount: number;
 	total: number;
+	last_payment_due: number;
 	created_at: string;
 	updated_at: string;
 };
@@ -50,7 +51,8 @@ export type VoucherApiInput = {
 	voucherDate: string;
 	buyerName?: string | null;
 	status?: 'draft' | 'complete';
-	discount: number;
+	discount?: number;
+	lastPaymentDue?: number;
 	items: VoucherLineItemInput[];
 };
 

@@ -32,6 +32,7 @@ type VoucherPayload = {
   buyerName?: string | null;
   status?: 'draft' | 'complete';
   discount?: number | string;
+  lastPaymentDue?: number | string;
   items?: VoucherItemPayload[];
 };
 
@@ -48,6 +49,7 @@ type VoucherRow = {
   subtotal: number;
   discount: number;
   total: number;
+  last_payment_due: number;
   created_at: string;
   updated_at: string;
 };
@@ -385,7 +387,8 @@ app.patch('/api/vouchers/:id', async (request: Request, response: Response) => {
   if ((payload as any).status !== undefined) update.status = (payload as any).status === 'complete' ? 'complete' : 'draft';
   if (payload.voucherDate !== undefined) update.voucher_date = payload.voucherDate as unknown as string;
   if (payload.voucherNumber !== undefined) update.voucher_number = (payload.voucherNumber ?? '').trim();
-  if (payload.discount !== undefined) update.discount = Math.max(0, toNumber(payload.discount, 0));
+  update.discount = 0;
+  if (payload.lastPaymentDue !== undefined) update.last_payment_due = Math.max(0, toNumber(payload.lastPaymentDue, 0));
 
   // fetch existing items to allow rollback if items replacement fails
   const { data: existingItems } = await supabase.from('voucher_items').select('*').eq('voucher_id', id);
@@ -496,7 +499,7 @@ app.post('/api/vouchers', async (request: Request<unknown, unknown, VoucherPaylo
   const voucherDate = payload.voucherDate || new Date().toISOString().slice(0, 10);
   const buyerName = payload.buyerName?.trim() || null;
   const status = payload.status === 'complete' ? 'complete' : 'draft';
-  const discount = Math.max(0, toNumber(payload.discount, 0));
+  const lastPaymentDue = Math.max(0, toNumber(payload.lastPaymentDue, 0));
   const items = Array.isArray(payload.items) ? payload.items : [];
 
   if (!voucherNumber) {
@@ -526,7 +529,7 @@ app.post('/api/vouchers', async (request: Request<unknown, unknown, VoucherPaylo
   }
 
   const subtotal = normalizedItems.reduce((total, item) => total + item.line_total, 0);
-  const total = Math.max(0, subtotal - discount);
+  const total = subtotal;
 
   const voucherInsert = {
     voucher_number: voucherNumber,
@@ -534,8 +537,9 @@ app.post('/api/vouchers', async (request: Request<unknown, unknown, VoucherPaylo
     buyer_name: buyerName,
     status,
     subtotal,
-    discount,
+    discount: 0,
     total,
+    last_payment_due: lastPaymentDue,
   };
 
   const voucherResult = await supabase.from('vouchers').insert(voucherInsert).select('*').single();

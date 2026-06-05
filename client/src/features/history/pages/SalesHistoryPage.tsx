@@ -61,7 +61,8 @@ export function SalesHistoryPage() {
 			date: isMyanmarLanguage ? 'ရက်စွဲ' : 'Date',
 			buyer: isMyanmarLanguage ? 'ဝယ်သူအမည်' : 'Buyer name',
 			status: isMyanmarLanguage ? 'အခြေအနေ' : 'Status',
-			total: isMyanmarLanguage ? 'စုစုပေါင်း -' : 'Total -',
+			total: isMyanmarLanguage ? 'စုစုပေါင်း' : 'Total',
+			finalTotal: isMyanmarLanguage ? 'စုစုပေါင်း' : 'Final Total',
 			details: isMyanmarLanguage ? 'အသေးစိတ်' : 'Details',
 			viewDetails: isMyanmarLanguage ? 'အသေးစိတ်ကြည့်ရန်' : 'View details',
 			hideDetails: isMyanmarLanguage ? 'အသေးစိတ်ဖျောက်ရန်' : 'Hide details',
@@ -74,9 +75,8 @@ export function SalesHistoryPage() {
 			loading: isMyanmarLanguage ? 'ဘောင်ချာ အသေးစိတ်ကို ဖတ်နေသည်...' : 'Loading voucher summary...',
 			empty: isMyanmarLanguage ? 'ဘောင်ချာ မရှိသေးပါ။' : 'No vouchers loaded yet.',
 			noItems: isMyanmarLanguage ? 'ဤဘောင်ချာတွင် line item မရှိသေးပါ။' : 'No line items found for this voucher.',
-			subtotal: isMyanmarLanguage ? 'စုစုပေါင်း -' : 'Subtotal -',
-			lastPaymentDue: isMyanmarLanguage ? 'ယခင်လက်ကျန်ငွေ -' : 'Last Payment Due -',
-			discount: isMyanmarLanguage ? 'လျှော့စျေး' : 'Discount',
+			subtotal: isMyanmarLanguage ? 'စုစုပေါင်း' : 'Subtotal',
+			lastPaymentDue: isMyanmarLanguage ? 'ယခင်လက်ကျန်ငွေ' : 'Last Payment Due',
 
 		}),
 		[isMyanmarLanguage],
@@ -303,11 +303,9 @@ export function SalesHistoryPage() {
 								<tbody>${rows}</tbody>
 							</table>
 
-							<div style="margin-top:14px; display:flex; justify-content:space-between; align-items:flex-end; gap:16px;">
-								<div style="font-size:12px; font-weight:700; color:#374151;">${escapeHtml(labels.lastPaymentDue)}</div>
-								<div class="summary" style="margin-top:0;">
-									<div>${escapeHtml(labels.subtotal)}</div><div class="num strong">${formatAmount(detail.subtotal)}</div>
-								</div>
+							<div class="summary" style="margin-top:14px; margin-left:auto; max-width:280px;">
+								<div>${escapeHtml(labels.total)}</div><div class="num strong">${formatAmount(detail.total)}</div>
+								${detail.last_payment_due > 0 ? `<div>${escapeHtml(labels.lastPaymentDue)}</div><div class="num strong">${formatAmount(detail.last_payment_due)}</div><div>${escapeHtml(labels.finalTotal)}</div><div class="num strong">${formatAmount(detail.total + detail.last_payment_due)}</div>` : ''}
 							</div>
 
 
@@ -491,14 +489,23 @@ export function SalesHistoryPage() {
 															</div>
 														</div>
 
-														<div className="flex items-end justify-between gap-4">
-															<div className="text-sm font-semibold text-slate-700">{labels.lastPaymentDue}</div>
-															<div className="ml-auto grid w-full gap-2 rounded-xl bg-slate-50 p-3 text-sm md:w-80">
-																<div className="flex items-center justify-between">
-																	<span className="text-slate-600">{labels.subtotal}</span>
-																	<span className="font-medium text-slate-900">{formatAmount(detail.subtotal)}</span>
-																</div>
+														<div className="ml-auto grid w-full gap-2 rounded-xl bg-slate-50 p-3 text-sm md:w-80">
+															<div className="flex items-center justify-between">
+																<span className="text-slate-600">{labels.total}</span>
+																<span className="font-medium text-slate-900">{formatAmount(detail.total)}</span>
 															</div>
+															{detail.last_payment_due > 0 ? (
+																<>
+																	<div className="flex items-center justify-between">
+																		<span className="text-slate-600">{labels.lastPaymentDue}</span>
+																		<span className="font-medium text-slate-900">{formatAmount(detail.last_payment_due)}</span>
+																	</div>
+																	<div className="flex items-center justify-between border-t border-slate-200 pt-2">
+																		<span className="font-semibold text-slate-700">{labels.finalTotal}</span>
+																		<span className="text-base font-bold text-slate-900">{formatAmount(detail.total + detail.last_payment_due)}</span>
+																	</div>
+																</>
+															) : null}
 														</div>
 													</div>
 												) : null}

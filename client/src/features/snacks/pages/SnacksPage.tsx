@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Package2, Pencil, Trash2 } from 'lucide-react';
@@ -18,9 +18,32 @@ const defaultSnackEntry: SnackEntry = {
 export function SnacksPage() {
 	const { t } = useTranslation();
 	const [snacks, setSnacks] = useState<SnackEntry[]>([]);
+	const [searchQuery, setSearchQuery] = useState('');
 	const [form, setForm] = useState<SnackEntry>(defaultSnackEntry);
 	const [isSaving, setIsSaving] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+	const duplicateNameSet = useMemo(() => {
+		const counts = new Map<string, number>();
+		for (const snack of snacks) {
+			counts.set(snack.name, (counts.get(snack.name) ?? 0) + 1);
+		}
+
+		const duplicates = new Set<string>();
+		for (const [name, count] of counts) {
+			if (count > 1) {
+				duplicates.add(name);
+			}
+		}
+
+		return duplicates;
+	}, [snacks]);
+
+	const filteredSnacks = useMemo(() => {
+		const query = searchQuery.trim().toLowerCase();
+		if (!query) return snacks;
+		return snacks.filter((snack) => snack.name.toLowerCase().includes(query));
+	}, [snacks, searchQuery]);
 
 	useEffect(() => {
 		void api
@@ -120,11 +143,19 @@ export function SnacksPage() {
 							<CardTitle>{t('snacks.list_title', 'Snack list')}</CardTitle>
 					</CardHeader>
 						<CardContent>
+							<div className="mb-3">
+								<Input
+									label={t('snacks.search_label', 'Search')}
+									placeholder={t('snacks.search_placeholder', 'Search snacks')}
+									value={searchQuery}
+									onChange={(event) => setSearchQuery(event.target.value)}
+								/>
+							</div>
 							<div className="space-y-2">
-								{snacks.length ? snacks.map((snack, index) => (
+								{filteredSnacks.length ? filteredSnacks.map((snack, index) => (
 									<div key={snack.id || snack.name} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
 										<div className="w-7 text-left text-sm font-semibold text-slate-500">{index + 1}.</div>
-										<div className="flex-1 text-sm font-medium text-slate-900">{snack.name}</div>
+										<div className={`flex-1 text-sm font-medium ${duplicateNameSet.has(snack.name) ? 'text-rose-600' : 'text-slate-900'}`}>{snack.name}</div>
 										<div className="flex items-center gap-2">
 											<Button type="button" variant="secondary" className="h-8 px-3" onClick={() => handleEdit(snack)}>
 												<Pencil className="h-4 w-4" />

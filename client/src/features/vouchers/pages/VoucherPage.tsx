@@ -80,7 +80,8 @@ export function VoucherPage() {
 	const [voucherNumber, setVoucherNumber] = useState('');
 	const [voucherNumberAuto, setVoucherNumberAuto] = useState(false);
 	const [voucherDate, setVoucherDate] = useState('');
-	const [discount, setDiscount] = useState('0');
+	const [lastPaymentDueEnabled, setLastPaymentDueEnabled] = useState(false);
+	const [lastPaymentDueAmount, setLastPaymentDueAmount] = useState('0');
 	const [buyerName, setBuyerName] = useState('');
 	const [infoSubmitted, setInfoSubmitted] = useState(false);
 	const [snacks, setSnacks] = useState<SnackLookupRecord[]>([]);
@@ -145,7 +146,9 @@ export function VoucherPage() {
 				setVoucherDate(record.voucher_date);
 				setVoucherNumber(record.voucher_number);
 				setVoucherNumberAuto(false);
-				setDiscount(String(record.discount ?? 0));
+				const restoredLastPaymentDue = Math.max(0, Number(record.last_payment_due ?? 0));
+				setLastPaymentDueEnabled(restoredLastPaymentDue > 0);
+				setLastPaymentDueAmount(String(restoredLastPaymentDue));
 				setItems(
 					record.items.map((item) => ({
 						id: item.id,
@@ -238,8 +241,11 @@ export function VoucherPage() {
 		const previewTotal = hasPreview ? Number(itemForm.qty || 0) * Number(itemForm.unit || 1) * Number(itemForm.unit2 || 1) * Number(itemForm.price || 0) : 0;
 		return itemsTotal + previewTotal;
 	}, [items, itemForm]);
-	const discountAmount = Number(discount || 0);
-	const total = Math.max(0, subtotal - discountAmount);
+	const total = subtotal;
+	const parsedLastPaymentDue = Math.max(0, Number(lastPaymentDueAmount || 0));
+	const hasLastPaymentDue = lastPaymentDueEnabled && parsedLastPaymentDue > 0;
+	const lastPaymentDueValue = hasLastPaymentDue ? parsedLastPaymentDue : 0;
+	const finalTotal = total + lastPaymentDueValue;
 	const summaryDate = voucherDate
 		? voucherDate
 			.split('-')
@@ -251,9 +257,8 @@ export function VoucherPage() {
 			title: 'ဘောင်ချာ ကြိုကြည့်ရန်',
 			description: 'ပရင့်မထုတ်ဘဲ ဘောင်ချာအချက်အလက်ကို စစ်ဆေးနိုင်ပါသည်။',
 			close: 'ပိတ်ရန်',
-			subtotal: 'စုစုပေါင်း -',
-			discount: 'လျှော့စျေး',
-			total: 'နောက်ဆုံးစုစုပေါင်း',
+			subtotal: 'စုစုပေါင်း',
+			total: 'စုစုပေါင်း',
 			empty: 'ထည့်ထားသော line item မရှိသေးပါ။',
 			note: 'ဤကြိုကြည့်မှုတွင် print လုပ်ဆောင်ချက် မပါဝင်ပါ။',
 		}
@@ -262,12 +267,14 @@ export function VoucherPage() {
 			description: 'Review the voucher on screen before saving.',
 			close: 'Close preview',
 			subtotal: 'Subtotal',
-			discount: 'Discount',
 			total: 'Total',
 			empty: 'No line items added yet.',
 			note: 'This preview is on-screen only and does not trigger printing.',
 		};
-	const lastPaymentDueLabel = isMyanmarLanguage ? 'ယခင်လက်ကျန်ငွေ -' : 'Last Payment Due -';
+	const lastPaymentDueLabel = isMyanmarLanguage ? 'ယခင်လက်ကျန်ငွေ' : 'Last Payment Due';
+	const finalTotalLabel = isMyanmarLanguage ? 'စုစုပေါင်း' : 'Final Total';
+	const includeLastPaymentDueLabel = isMyanmarLanguage ? 'လက်ကျန်ငွေ ထည့်မည်' : 'Include Last Payment Due';
+	const submitAmountLabel = isMyanmarLanguage ? 'ထည့်မည့်ငွေပမာဏ' : 'Submit amount';
 
 	function displayUnit(value: number) {
 		return value === 1 ? '' : String(value);
@@ -341,7 +348,7 @@ name: snack.name,
 					voucherDate,
 					buyerName,
 					status: 'draft' as const,
-					discount: Number(discount || 0),
+					lastPaymentDue: lastPaymentDueValue,
 					items: buildVoucherItemInputs(newItems),
 				};
 
@@ -388,7 +395,7 @@ name: snack.name,
 					voucherDate,
 					buyerName,
 					status: 'draft' as const,
-					discount: Number(discount || 0),
+					lastPaymentDue: lastPaymentDueValue,
 					items: buildVoucherItemInputs(items),
 				};
 
@@ -455,7 +462,8 @@ name: snack.name,
 			setVoucherDate('');
 			setVoucherNumber('');
 			setVoucherNumberAuto(false);
-			setDiscount('0');
+			setLastPaymentDueEnabled(false);
+			setLastPaymentDueAmount('0');
 			setItems([]);
 			setItemForm(createLineItem());
 			setInfoSubmitted(false);
@@ -479,7 +487,7 @@ name: snack.name,
 				voucherDate,
 				buyerName,
 				status: 'draft' as const,
-				discount: Number(discount || 0),
+				lastPaymentDue: lastPaymentDueValue,
 				items: buildVoucherItemInputs(nextItems),
 			};
 
@@ -509,7 +517,7 @@ name: snack.name,
 				voucherDate: finalVoucherDate,
 				buyerName,
 				status: 'complete' as const,
-				discount: Number(discount || 0),
+				lastPaymentDue: lastPaymentDueValue,
 				items: buildVoucherItemInputs(items),
 			};
 
@@ -527,7 +535,8 @@ name: snack.name,
 			setBuyerName('');
 			setVoucherDate('');
 			setVoucherNumber('');
-			setDiscount('0');
+			setLastPaymentDueEnabled(false);
+			setLastPaymentDueAmount('0');
 			setItems([]);
 			setItemForm(createLineItem());
 			setInfoSubmitted(false);
@@ -743,28 +752,47 @@ name: snack.name,
 							</div>
 						</div>
 						<div className="mt-auto rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
-							<div className="flex items-end justify-between gap-6">
-								<div className="pb-1 text-sm font-semibold text-slate-700">{lastPaymentDueLabel}</div>
-								<div className="grid w-full max-w-xs gap-3">
-									<div className="flex items-center justify-between">
-										<span>Subtotal</span>
-										<span className="font-medium text-slate-900">{formatAmountWithoutCurrency(subtotal)}</span>
-									</div>
-									<div className="flex items-center justify-between">
-										<span>Discount</span>
-										<div className="w-32">
-											<Input value={discount} onChange={(event) => setDiscount(event.target.value)} />
-										</div>
-									</div>
-									<div className="flex items-center justify-between border-t border-slate-200 pt-3 text-base font-semibold text-slate-900">
-										<span>Total</span>
-										<span className="font-semibold text-slate-900">{formatAmountWithoutCurrency(total)}</span>
-									</div>
+							<div className="flex items-start justify-between gap-6">
+								<div className="ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-8 gap-y-2">
+									<div>Total</div>
+									<div className="text-right font-semibold text-slate-900">{formatAmountWithoutCurrency(total)}</div>
+									{hasLastPaymentDue ? (
+										<>
+											<div>{lastPaymentDueLabel}</div>
+											<div className="text-right font-semibold text-slate-900">{formatAmountWithoutCurrency(lastPaymentDueValue)}</div>
+											<div className="font-semibold">{finalTotalLabel}</div>
+											<div className="text-right text-base font-bold text-slate-900">{formatAmountWithoutCurrency(finalTotal)}</div>
+										</>
+									) : null}
 								</div>
 							</div>
 						</div>
 						<div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">
-							Voucher controls, payment capture, and preview review can live here once the form is connected.
+							<div className="space-y-3">
+								<label className="flex items-center gap-2 font-medium text-slate-800">
+									<input
+										type="checkbox"
+										checked={lastPaymentDueEnabled}
+										onChange={(event) => setLastPaymentDueEnabled(event.target.checked)}
+										disabled={!infoSubmitted}
+										className="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-400"
+									/>
+									<span>{includeLastPaymentDueLabel}</span>
+								</label>
+								{lastPaymentDueEnabled ? (
+									<div className="max-w-xs">
+										<Input
+											label={submitAmountLabel}
+											type="number"
+											min="0"
+											step="0.01"
+											value={lastPaymentDueAmount}
+											disabled={!infoSubmitted}
+											onChange={(event) => setLastPaymentDueAmount(event.target.value)}
+										/>
+									</div>
+								) : null}
+							</div>
 						</div>
 						{snackStatus ? <div className="text-sm text-rose-600">{snackStatus}</div> : null}
 						<div className="flex gap-3">
@@ -838,12 +866,17 @@ name: snack.name,
 						</div>
 					</div>
 
-					<div className="flex items-end justify-between gap-6 pt-2">
-						<div className="text-[12px] font-semibold text-slate-700">{lastPaymentDueLabel}</div>
-						<div className="ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-8 gap-y-1 text-[12px]">
-							<div>{previewStrings.subtotal}</div>
-							<div className="text-right font-semibold">{formatAmountWithoutCurrency(subtotal)}</div>
-						</div>
+					<div className="ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-8 gap-y-1 pt-2 text-[12px]">
+						<div>{previewStrings.total}</div>
+						<div className="text-right font-semibold">{formatAmountWithoutCurrency(total)}</div>
+						{hasLastPaymentDue ? (
+							<>
+								<div>{lastPaymentDueLabel}</div>
+								<div className="text-right font-semibold">{formatAmountWithoutCurrency(lastPaymentDueValue)}</div>
+								<div className="font-semibold">{finalTotalLabel}</div>
+								<div className="text-right font-bold">{formatAmountWithoutCurrency(finalTotal)}</div>
+							</>
+						) : null}
 					</div>
 				</div>
 			</Modal>

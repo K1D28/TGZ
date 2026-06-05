@@ -12,6 +12,8 @@
     "details_title": "ပစ္စည်းအသေးစိတ်",
     "details_description": "မုန့်အမည်များကို လက်ရေးဖြင့် ထည့်ပါ။",
     "list_title": "ပစ္စည်းစရင်း",
+    "search_label": "ရှာရန်",
+    "search_placeholder": "ပစ္စည်းရှာမည်",
     "empty": "မုန့်ပစ္စည်း မရှိသေးပါ။",
     "confirm_delete": "\"{{name}}\" ကို ဖျက်မလား?",
     "fields": { "name": "ပစ္စည်းအမျိုးအမည်" }
