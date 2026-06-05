@@ -200,20 +200,88 @@ export function SalesHistoryPage() {
 					return;
 				}
 
-				const rows = detail.items.length
-					? detail.items
-						.map((item, index) => `
-							<tr>
-								<td class="center">${index + 1}</td>
-								<td>${escapeHtml(item.item_name)}</td>
-								<td class="num">${item.quantity}</td>
-								<td class="num">${escapeHtml(displayUnitValue(item.unit))}</td>
-								<td class="num">${escapeHtml(displayUnitValue(item.unit2))}</td>
-								<td class="num">${formatAmount(item.unit_price)}</td>
-								<td class="num strong">${formatAmount(item.line_total)}</td>
-							</tr>`)
-							.join('')
-					: `<tr><td colspan="7" class="empty">${escapeHtml(labels.noItems)}</td></tr>`;
+				const maxRowsPerPage = 22;
+				const rowsPerCarryPage = 20;
+
+				const itemChunks: typeof detail.items[] = [];
+				if (!detail.items.length) {
+					itemChunks.push([]);
+				} else {
+					let cursor = 0;
+					while (cursor < detail.items.length) {
+						const remaining = detail.items.length - cursor;
+						const pageSize = remaining > maxRowsPerPage ? rowsPerCarryPage : remaining;
+						itemChunks.push(detail.items.slice(cursor, cursor + pageSize));
+						cursor += pageSize;
+					}
+				}
+
+				const tableHeaderHtml = `
+					<thead>
+						<tr>
+							<th style="width:42px;">${escapeHtml(t('voucher.summary.table.no'))}</th>
+							<th>${escapeHtml(t('voucher.summary.table.name'))}</th>
+							<th style="width:56px;" class="num">${escapeHtml(t('voucher.summary.table.qty'))}</th>
+							<th style="width:54px;" class="num">${escapeHtml(t('voucher.summary.table.unit'))}</th>
+							<th style="width:54px;" class="num">${escapeHtml(t('voucher.summary.table.unit2'))}</th>
+							<th style="width:88px;" class="num">${escapeHtml(t('voucher.summary.table.unit_price'))}</th>
+							<th style="width:92px;" class="num">${escapeHtml(t('voucher.summary.table.total'))}</th>
+						</tr>
+					</thead>
+				`;
+
+				let rowOffset = 0;
+				const pagesHtml = itemChunks
+					.map((pageItems, pageIndex) => {
+						const pageRows = pageItems.length
+							? pageItems
+								.map((item, index) => `
+									<tr>
+										<td class="center">${rowOffset + index + 1}</td>
+										<td>${escapeHtml(item.item_name)}</td>
+										<td class="num">${item.quantity}</td>
+										<td class="num">${escapeHtml(displayUnitValue(item.unit))}</td>
+										<td class="num">${escapeHtml(displayUnitValue(item.unit2))}</td>
+										<td class="num">${formatAmount(item.unit_price)}</td>
+										<td class="num strong">${formatAmount(item.line_total)}</td>
+									</tr>`)
+								.join('')
+							: `<tr><td colspan="7" class="empty">${escapeHtml(labels.noItems)}</td></tr>`;
+
+						rowOffset += pageItems.length;
+						const isLastPage = pageIndex === itemChunks.length - 1;
+						const pageBreakClass = isLastPage ? '' : ' page-break';
+
+						return `
+							<div class="sheet${pageBreakClass}">
+								<div class="page-number">Page ${pageIndex + 1}</div>
+								<div style="text-align:center; margin-top:18px; margin-bottom:10px;">
+									<div style="font-size:22px; font-weight:700; line-height:1;">ကိုဝင်းမြင့် + မဝင်နီကျော်</div>
+									<div style="font-size:16px; font-weight:600;">မုန့်မျိုးစုံ ရောင်းဝယ်ရေး</div>
+									<div style="font-size:12px; font-weight:500; margin-top:6px;">Phone number - 09-409 611 449, 09-895 480 600</div>
+								</div>
+								<div class="header">
+									<div>
+										<div class="meta">
+											${escapeHtml(t('voucher.summary.buyer_name'))}: <span class="buyer-name-value">${escapeHtml(voucher.buyer_name || '-')}</span>
+										</div>
+									</div>
+									<div class="header-center meta">${escapeHtml(t('voucher.summary.voucher_number'))}: ${escapeHtml(voucher.voucher_number)}</div>
+									<div class="meta" style="text-align:right;">
+										<div>${escapeHtml(t('voucher.summary.date'))}: ${escapeHtml(formatVoucherDate(voucher.voucher_date, isMyanmarLanguage))}</div>
+									</div>
+								</div>
+
+								<table>
+									${tableHeaderHtml}
+									<tbody>${pageRows}</tbody>
+								</table>
+
+								${isLastPage ? `<div class="summary" style="margin-top:14px; margin-left:auto; max-width:280px;"><div>${escapeHtml(labels.total)}</div><div class="num strong">${formatAmount(detail.total)}</div>${detail.last_payment_due > 0 ? `<div>${escapeHtml(labels.lastPaymentDue)}</div><div class="num strong">${formatAmount(detail.last_payment_due)}</div><div>${escapeHtml(labels.finalTotal)}</div><div class="num strong">${formatAmount(detail.total + detail.last_payment_due)}</div>` : ''}</div>` : ''}
+							</div>
+						`;
+					})
+					.join('');
 
 				const printHtml = `
 					<!doctype html>
@@ -236,7 +304,12 @@ export function SalesHistoryPage() {
 								font-weight: 700;
 							}
 							.sheet {
+								position: relative;
 								padding: 0;
+							}
+							.page-break {
+								break-after: page;
+								page-break-after: always;
 							}
 							.header {
 								display: flex;
@@ -270,51 +343,22 @@ export function SalesHistoryPage() {
 								gap: 8px 24px;
 								font-size: 12px;
 							}
+							.page-number {
+								position: absolute;
+								top: 0;
+								left: 0;
+								font-size: 11px;
+								font-weight: 600;
+								color: #374151;
+							}
 							.footer { margin-top: 18px; font-size: 11px; color: #6b7280; }
-							@media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+							@media print {
+								body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+							}
 						</style>
 					</head>
 					<body>
-						<div class="sheet">
-							<div style="text-align:center; margin-top:18px; margin-bottom:10px;">
-								<div style="font-size:22px; font-weight:700; line-height:1;">ကိုဝင်းမြင့် + မဝင်နီကျော်</div>
-								<div style="font-size:16px; font-weight:600;">မုန့်မျိုးစုံ ရောင်းဝယ်ရေး</div>
-								<div style="font-size:12px; font-weight:500; margin-top:6px;">Phone number - 09-409 611 449, 09-895 480 600</div>
-							</div>
-							<div class="header">
-								<div>
-									<div class="meta">
-										${escapeHtml(t('voucher.summary.buyer_name'))}: <span class="buyer-name-value">${escapeHtml(voucher.buyer_name || '-')}</span>
-									</div>
-								</div>
-								<div class="header-center meta">${escapeHtml(t('voucher.summary.voucher_number'))}: ${escapeHtml(voucher.voucher_number)}</div>
-								<div class="meta" style="text-align:right;">
-									<div>${escapeHtml(t('voucher.summary.date'))}: ${escapeHtml(formatVoucherDate(voucher.voucher_date, isMyanmarLanguage))}</div>
-								</div>
-							</div>
-
-							<table>
-								<thead>
-									<tr>
-										<th style="width:42px;">${escapeHtml(t('voucher.summary.table.no'))}</th>
-										<th>${escapeHtml(t('voucher.summary.table.name'))}</th>
-										<th style="width:56px;" class="num">${escapeHtml(t('voucher.summary.table.qty'))}</th>
-										<th style="width:54px;" class="num">${escapeHtml(t('voucher.summary.table.unit'))}</th>
-										<th style="width:54px;" class="num">${escapeHtml(t('voucher.summary.table.unit2'))}</th>
-										<th style="width:88px;" class="num">${escapeHtml(t('voucher.summary.table.unit_price'))}</th>
-										<th style="width:92px;" class="num">${escapeHtml(t('voucher.summary.table.total'))}</th>
-									</tr>
-								</thead>
-								<tbody>${rows}</tbody>
-							</table>
-
-							<div class="summary" style="margin-top:14px; margin-left:auto; max-width:280px;">
-								<div>${escapeHtml(labels.total)}</div><div class="num strong">${formatAmount(detail.total)}</div>
-								${detail.last_payment_due > 0 ? `<div>${escapeHtml(labels.lastPaymentDue)}</div><div class="num strong">${formatAmount(detail.last_payment_due)}</div><div>${escapeHtml(labels.finalTotal)}</div><div class="num strong">${formatAmount(detail.total + detail.last_payment_due)}</div>` : ''}
-							</div>
-
-
-						</div>
+						${pagesHtml}
 						<script>
 							window.onload = function() {
 								window.focus();
