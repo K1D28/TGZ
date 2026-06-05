@@ -231,6 +231,10 @@ export function SalesHistoryPage() {
 								color: #111827;
 								background: #fff;
 							}
+							.buyer-name-value {
+								font-size: 14px;
+								font-weight: 700;
+							}
 							.sheet {
 								padding: 0;
 							}
@@ -238,16 +242,15 @@ export function SalesHistoryPage() {
 								display: flex;
 								justify-content: space-between;
 								gap: 16px;
-								margin-bottom: 14px;
+								margin-bottom: 10px;
 								font-size: 12px;
 							}
-							.title {
-								font-size: 20px;
-								font-weight: 700;
-								margin-bottom: 4px;
+							.header-center {
+								flex: 1;
+								text-align: center;
 							}
 							.meta { line-height: 1.6; }
-							table { width: 100%; border-collapse: collapse; font-size: 11px; }
+							table { width: 100%; border-collapse: collapse; font-size: 10px; }
 							thead th {
 								background: #f8fafc;
 								font-size: 10px;
@@ -255,7 +258,7 @@ export function SalesHistoryPage() {
 								letter-spacing: 0.12em;
 								color: #6b7280;
 							}
-							th, td { border: 1px solid #d1d5db; padding: 7px 8px; vertical-align: top; }
+							th, td { border: 1px solid #d1d5db; padding: 5px 6px; vertical-align: top; }
 							.num { text-align: right; white-space: nowrap; }
 							.center { text-align: center; }
 							.strong { font-weight: 700; }
@@ -280,9 +283,11 @@ export function SalesHistoryPage() {
 							</div>
 							<div class="header">
 								<div>
-									<div class="meta">${escapeHtml(t('voucher.summary.buyer_name'))}: ${escapeHtml(voucher.buyer_name || '-')}</div>
-									<div class="meta">${escapeHtml(t('voucher.summary.voucher_number'))}: ${escapeHtml(voucher.voucher_number)}</div>
+									<div class="meta">
+										${escapeHtml(t('voucher.summary.buyer_name'))}: <span class="buyer-name-value">${escapeHtml(voucher.buyer_name || '-')}</span>
+									</div>
 								</div>
+								<div class="header-center meta">${escapeHtml(t('voucher.summary.voucher_number'))}: ${escapeHtml(voucher.voucher_number)}</div>
 								<div class="meta" style="text-align:right;">
 									<div>${escapeHtml(t('voucher.summary.date'))}: ${escapeHtml(formatVoucherDate(voucher.voucher_date, isMyanmarLanguage))}</div>
 								</div>
@@ -433,19 +438,19 @@ export function SalesHistoryPage() {
 									{isExpanded ? (
 										<div className="bg-slate-50 px-4 pb-4">
 											<div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-												<div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-													<div className="grid flex-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-													<div className="rounded-lg bg-slate-50 p-3">
-														<div className="text-xs uppercase tracking-wide text-slate-500">{t('voucher.summary.voucher_number')}</div>
-														<div className="mt-1 text-sm font-semibold text-slate-900">{voucher.voucher_number}</div>
-													</div>
+													<div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+														<div className="w-full text-center">
+															<div className="text-xs uppercase tracking-wide text-slate-500">{t('voucher.summary.voucher_number')}</div>
+															<div className="mt-1 text-base font-bold text-slate-900">{voucher.voucher_number}</div>
+														</div>
+														<div className="grid flex-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
 													<div className="rounded-lg bg-slate-50 p-3">
 														<div className="text-xs uppercase tracking-wide text-slate-500">{t('voucher.summary.date')}</div>
 														<div className="mt-1 text-sm font-semibold text-slate-900">{displayDate}</div>
 													</div>
 													<div className="rounded-lg bg-slate-50 p-3">
 														<div className="text-xs uppercase tracking-wide text-slate-500">{t('voucher.summary.buyer_name')}</div>
-														<div className="mt-1 text-sm font-semibold text-slate-900">{voucher.buyer_name || '-'}</div>
+														<div className="mt-1 text-base font-bold text-slate-900">{voucher.buyer_name || '-'}</div>
 													</div>
 													<div className="rounded-lg bg-slate-50 p-3">
 														<div className="text-xs uppercase tracking-wide text-slate-500">{labels.status}</div>
@@ -465,7 +470,7 @@ export function SalesHistoryPage() {
 												{detail && !isLoading && !detailError ? (
 													<div className="space-y-3">
 														<div className="overflow-hidden rounded-xl border border-slate-200">
-															<div className={`grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 ${isMyanmarLanguage ? 'tracking-normal' : ''}`}>
+															<div className={`grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-600 ${isMyanmarLanguage ? 'tracking-normal' : ''}`}>
 																<div className="text-center">{t('voucher.summary.table.no')}</div>
 																<div>{t('voucher.summary.table.name')}</div>
 																<div className="text-right">{t('voucher.summary.table.qty')}</div>
@@ -476,7 +481,7 @@ export function SalesHistoryPage() {
 															</div>
 															<div className="divide-y divide-slate-200">
 																{detail.items.length ? detail.items.map((item, index) => (
-																	<div key={item.id} className="grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] px-3 py-2 text-sm">
+																	<div key={item.id} className="grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] px-3 py-1.5 text-xs">
 																		<div className="text-center font-medium text-slate-700">{index + 1}</div>
 																		<div className="font-medium text-slate-900">{item.item_name}</div>
 																		<div className="text-right text-slate-600">{item.quantity}</div>
