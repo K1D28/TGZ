@@ -93,6 +93,7 @@ export function VoucherPage() {
 	const [items, setItems] = useState<VoucherLineItem[]>([]);
 	const [itemForm, setItemForm] = useState<VoucherLineItem>(createLineItem());
 	const [saveStatus, setSaveStatus] = useState<string | null>(null);
+	const [isSavingVoucher, setIsSavingVoucher] = useState(false);
 	const [previewOpen, setPreviewOpen] = useState(false);
 	const itemSaveInFlightRef = useRef(false);
 	const canSaveVoucher = infoSubmitted && buyerName.trim() !== '' && voucherDate.trim() !== '' && voucherNumber.trim() !== '';
@@ -502,12 +503,15 @@ name: snack.name,
 	}
 
 	async function handleSaveVoucher() {
+		if (isSavingVoucher) return;
+
 		if (!canSaveVoucher) {
 			setSaveStatus('Submit Buyer name and Voucher date first.');
 			return;
 		}
 
 		try {
+			setIsSavingVoucher(true);
 			setSaveStatus(null);
 			const finalVoucherDate = voucherDate;
 			const canReuseCurrentVoucherNumber = voucherNumber.trim() !== '' && voucherNumberMatchesDate(voucherNumber, finalVoucherDate);
@@ -544,6 +548,8 @@ name: snack.name,
 			window.localStorage.removeItem(DRAFT_STORAGE_KEY);
 		} catch (error) {
 			setSaveStatus(error instanceof Error ? error.message : 'Failed to save voucher.');
+		} finally {
+			setIsSavingVoucher(false);
 		}
 	}
 
@@ -711,8 +717,8 @@ name: snack.name,
 												const unitPrice = Number(item.price || 0);
 												const lineTotal = quantity * unit * unit2 * unitPrice;
 												return (
-													<div key={item.id} className="grid grid-cols-[36px_64px_minmax(0,1.5fr)_54px_66px_66px_minmax(0,1fr)_minmax(0,1fr)] text-[11px]">
-														<div className="border-r border-slate-200 px-2 py-[9px] text-center">
+													<div key={item.id} className="grid grid-cols-[36px_64px_minmax(0,1.5fr)_54px_66px_66px_minmax(0,1fr)_minmax(0,1fr)] text-[12px]">
+														<div className="border-r border-slate-200 px-2 py-[11px] text-center">
 															<button
 																type="button"
 																onClick={() => handleDeleteLineItem(item.id)}
@@ -723,27 +729,27 @@ name: snack.name,
 																×
 															</button>
 														</div>
-														<div className="border-r border-slate-200 px-4 py-[9px] text-center font-medium text-slate-900">{displayIndex}</div>
-														<div className="border-r border-slate-200 px-4 py-[9px] font-medium text-slate-900">{item.name}</div>
-														<div className="border-r border-slate-200 px-4 py-[9px] text-right text-slate-600">{quantity}</div>
-														<div className="border-r border-slate-200 px-4 py-[9px] text-slate-600">{displayUnit(unit)}</div>
-														<div className="border-r border-slate-200 px-4 py-[9px] text-slate-600">{displayUnit(unit2)}</div>
-														<div className="border-r border-slate-200 px-4 py-[9px] text-right text-slate-600">{formatAmountWithoutCurrency(unitPrice)}</div>
-														<div className="px-4 py-[9px] text-right font-medium text-slate-900">{formatAmountWithoutCurrency(lineTotal)}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] text-center font-medium text-slate-900">{displayIndex}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] font-medium text-slate-900">{item.name}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] text-right text-slate-600">{quantity}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] text-slate-600">{displayUnit(unit)}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] text-slate-600">{displayUnit(unit2)}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] text-right text-slate-600">{formatAmountWithoutCurrency(unitPrice)}</div>
+														<div className="px-4 py-[11px] text-right font-medium text-slate-900">{formatAmountWithoutCurrency(lineTotal)}</div>
 													</div>
 												);
 											})}
 											{/* Preview appears after submitted items so first submitted item stays No.1 */}
 											{hasPreview && (
-												<div key="preview" className="grid grid-cols-[36px_64px_minmax(0,1.5fr)_54px_66px_66px_minmax(0,1fr)_minmax(0,1fr)] text-[11px]">
-													<div className="border-r border-slate-200 px-2 py-[9px] text-center" />
-													<div className="border-r border-slate-200 px-4 py-[9px] text-center font-medium text-slate-900">{items.length + 1}</div>
-													<div className="border-r border-slate-200 px-4 py-[9px] font-medium text-slate-900">{itemForm.name || ''}</div>
-													<div className="border-r border-slate-200 px-4 py-[9px] text-right text-slate-600">{itemForm.qty ? Math.max(1, Number(itemForm.qty || 1)) : ''}</div>
-													<div className="border-r border-slate-200 px-4 py-[9px] text-slate-600">{itemForm.unit ? displayUnit(Number(itemForm.unit || 1)) : ''}</div>
-													<div className="border-r border-slate-200 px-4 py-[9px] text-slate-600">{itemForm.unit2 ? displayUnit(Number(itemForm.unit2 || 1)) : ''}</div>
-													<div className="border-r border-slate-200 px-4 py-[9px] text-right text-slate-600">{itemForm.price ? formatAmountWithoutCurrency(Number(itemForm.price || 0)) : ''}</div>
-													<div className="px-4 py-[9px] text-right font-medium text-slate-900">{formatAmountWithoutCurrency(Math.max(1, Number(itemForm.qty || 1)) * Number(itemForm.unit || 1) * Number(itemForm.unit2 || 1) * Number(itemForm.price || 0))}</div>
+												<div key="preview" className="grid grid-cols-[36px_64px_minmax(0,1.5fr)_54px_66px_66px_minmax(0,1fr)_minmax(0,1fr)] text-[12px]">
+													<div className="border-r border-slate-200 px-2 py-[11px] text-center" />
+													<div className="border-r border-slate-200 px-4 py-[11px] text-center font-medium text-slate-900">{items.length + 1}</div>
+													<div className="border-r border-slate-200 px-4 py-[11px] font-medium text-slate-900">{itemForm.name || ''}</div>
+													<div className="border-r border-slate-200 px-4 py-[11px] text-right text-slate-600">{itemForm.qty ? Math.max(1, Number(itemForm.qty || 1)) : ''}</div>
+													<div className="border-r border-slate-200 px-4 py-[11px] text-slate-600">{itemForm.unit ? displayUnit(Number(itemForm.unit || 1)) : ''}</div>
+													<div className="border-r border-slate-200 px-4 py-[11px] text-slate-600">{itemForm.unit2 ? displayUnit(Number(itemForm.unit2 || 1)) : ''}</div>
+													<div className="border-r border-slate-200 px-4 py-[11px] text-right text-slate-600">{itemForm.price ? formatAmountWithoutCurrency(Number(itemForm.price || 0)) : ''}</div>
+													<div className="px-4 py-[11px] text-right font-medium text-slate-900">{formatAmountWithoutCurrency(Math.max(1, Number(itemForm.qty || 1)) * Number(itemForm.unit || 1) * Number(itemForm.unit2 || 1) * Number(itemForm.price || 0))}</div>
 												</div>
 											)}
 										</>
@@ -796,7 +802,9 @@ name: snack.name,
 						</div>
 						{snackStatus ? <div className="text-sm text-rose-600">{snackStatus}</div> : null}
 						<div className="flex gap-3">
-							<Button type="button" onClick={handleSaveVoucher}>Save voucher</Button>
+							<Button type="button" onClick={handleSaveVoucher} disabled={isSavingVoucher || !canSaveVoucher}>
+								{isSavingVoucher ? 'Saving voucher...' : 'Save voucher'}
+							</Button>
 							<Button type="button" variant="secondary" onClick={handleOpenPreview}>
 								Preview voucher
 							</Button>

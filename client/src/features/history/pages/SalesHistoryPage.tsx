@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Button, Card, CardContent, CardHeader, CardTitle, Header, Input } from '../../../ui';
 import { api, type VoucherApiRecord, type VoucherLineItemRecord } from '../../../lib/api';
+
+const DRAFT_STORAGE_KEY = 'voucher-draft-id';
 
 function formatAmount(value: number) {
 	return new Intl.NumberFormat('en-US', {
@@ -40,6 +43,7 @@ function displayUnitValue(value: number | string | null | undefined) {
 
 export function SalesHistoryPage() {
 	const { t, i18n } = useTranslation();
+	const navigate = useNavigate();
 	const isMyanmarLanguage = i18n.language.startsWith('my');
 	const [filters, setFilters] = useState({ voucher: '', from: '', to: '' });
 	const [vouchers, setVouchers] = useState<VoucherApiRecord[]>([]);
@@ -50,6 +54,7 @@ export function SalesHistoryPage() {
 	const [voucherDetails, setVoucherDetails] = useState<Record<string, VoucherApiRecord & { items: VoucherLineItemRecord[] }>>({});
 	const [selectedVoucherIds, setSelectedVoucherIds] = useState<string[]>([]);
 	const [deleteInProgress, setDeleteInProgress] = useState(false);
+	const [statusUpdateInProgressId, setStatusUpdateInProgressId] = useState<string | null>(null);
 
 	const labels = useMemo(
 		() => ({
@@ -70,6 +75,10 @@ export function SalesHistoryPage() {
 			deleteSelected: isMyanmarLanguage ? 'ရွေးထားသောဘောင်ချာများ ဖျက်ရန်' : 'Delete selected vouchers',
 			deleteVoucher: isMyanmarLanguage ? 'ဖျက်ရန်' : 'Delete',
 			deleting: isMyanmarLanguage ? 'ဖျက်နေသည်...' : 'Deleting...',
+			switchingStatus: isMyanmarLanguage ? 'အခြေအနေ ပြောင်းနေသည်...' : 'Switching status...',
+			draft: isMyanmarLanguage ? 'Draft' : 'Draft',
+			complete: isMyanmarLanguage ? 'Complete' : 'Complete',
+			edit: isMyanmarLanguage ? 'ပြင်ဆင်ရန်' : 'Edit',
 			printVoucher: isMyanmarLanguage ? 'ဘောင်ချာ ပုံနှိပ်ရန်' : 'Print voucher',
 			filterHistory: isMyanmarLanguage ? 'မှတ်တမ်း စီစစ်ရန်' : 'Filter history',
 			loading: isMyanmarLanguage ? 'ဘောင်ချာ အသေးစိတ်ကို ဖတ်နေသည်...' : 'Loading voucher summary...',
@@ -185,6 +194,82 @@ export function SalesHistoryPage() {
 			.finally(() => {
 				setDetailsLoadingId((current) => (current === voucher.id ? null : current));
 			});
+	};
+
+	const syncVoucherStatusLocally = (voucherId: string, status: VoucherApiRecord['status']) => {
+		setVouchers((current) => current.map((voucher) => (voucher.id === voucherId ? { ...voucher, status } : voucher)));
+		setVoucherDetails((current) => {
+			const detail = current[voucherId];
+			if (!detail) return current;
+			return {
+				...current,
+				[voucherId]: {
+					...detail,
+					status,
+				},
+			};
+		});
+	};
+
+	const updateVoucherStatus = async (voucherId: string, nextStatus: VoucherApiRecord['status']) => {
+		const detail = voucherDetails[voucherId] ?? (await api.getVoucher(voucherId));
+		if (!voucherDetails[voucherId]) {
+			setVoucherDetails((current) => ({ ...current, [voucherId]: detail }));
+		}
+
+		await api.updateVoucher(voucherId, {
+			voucherNumber: detail.voucher_number,
+			voucherDate: detail.voucher_date,
+			buyerName: detail.buyer_name,
+			status: nextStatus,
+			lastPaymentDue: detail.last_payment_due,
+			discount: detail.discount,
+			items: detail.items.map((item) => ({
+				snackId: item.snack_id,
+				name: item.item_name,
+				qty: item.quantity,
+				unit: item.unit,
+				unit2: item.unit2,
+				price: item.unit_price,
+			})),
+		});
+
+		syncVoucherStatusLocally(voucherId, nextStatus);
+	};
+
+	const handleChangeVoucherStatus = async (voucher: VoucherApiRecord) => {
+		if (statusUpdateInProgressId) return;
+
+		const nextStatus: VoucherApiRecord['status'] = voucher.status === 'draft' ? 'complete' : 'draft';
+		let shouldOpenEditor = false;
+
+		setStatusUpdateInProgressId(voucher.id);
+		setErrorMessage(null);
+
+		try {
+			if (nextStatus === 'draft') {
+				const existingDraftIds = vouchers
+					.filter((record) => record.id !== voucher.id && record.status === 'draft')
+					.map((record) => record.id);
+
+				for (const draftId of existingDraftIds) {
+					await updateVoucherStatus(draftId, 'complete');
+				}
+
+				shouldOpenEditor = true;
+			}
+
+			await updateVoucherStatus(voucher.id, nextStatus);
+
+			if (shouldOpenEditor) {
+				window.localStorage.setItem(DRAFT_STORAGE_KEY, voucher.id);
+				navigate('/vouchers/new');
+			}
+		} catch (error) {
+			setErrorMessage(error instanceof Error ? error.message : 'Failed to change voucher status.');
+		} finally {
+			setStatusUpdateInProgressId((current) => (current === voucher.id ? null : current));
+		}
 	};
 
 	const handlePrintVoucher = async (voucher: VoucherApiRecord) => {
@@ -323,15 +408,15 @@ export function SalesHistoryPage() {
 								text-align: center;
 							}
 							.meta { line-height: 1.6; }
-							table { width: 100%; border-collapse: collapse; font-size: 10px; }
+							table { width: 100%; border-collapse: collapse; font-size: 11px; }
 							thead th {
 								background: #f8fafc;
-								font-size: 10px;
+								font-size: 11px;
 								text-transform: uppercase;
 								letter-spacing: 0.12em;
 								color: #6b7280;
 							}
-							th, td { border: 1px solid #d1d5db; padding: 5px 6px; vertical-align: top; }
+							th, td { border: 1px solid #d1d5db; padding: 7px 8px; vertical-align: top; }
 							.num { text-align: right; white-space: nowrap; }
 							.center { text-align: center; }
 							.strong { font-weight: 700; }
@@ -441,6 +526,11 @@ export function SalesHistoryPage() {
 							const detail = voucherDetails[voucher.id];
 							const detailError = detailsErrors[voucher.id];
 							const isLoading = detailsLoadingId === voucher.id;
+							const isUpdatingStatus = statusUpdateInProgressId === voucher.id;
+							const statusToggleLabel = voucher.status === 'draft' ? labels.complete : labels.edit;
+							const statusToggleClass = voucher.status === 'draft'
+								? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+								: 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100';
 							const displayDate = formatVoucherDate(voucher.voucher_date, isMyanmarLanguage);
 
 							return (
@@ -462,6 +552,15 @@ export function SalesHistoryPage() {
 										<div className="text-right text-slate-900">{formatAmount(voucher.total)}</div>
 										<div className="flex justify-end">
 											<div className="flex gap-2">
+												<Button
+													type="button"
+													variant="secondary"
+													className={`h-8 rounded-lg px-3 text-xs font-semibold ${statusToggleClass}`}
+													onClick={() => void handleChangeVoucherStatus(voucher)}
+													disabled={isUpdatingStatus}
+												>
+													{isUpdatingStatus ? labels.switchingStatus : statusToggleLabel}
+												</Button>
 												<Button type="button" variant="secondary" className="h-8 rounded-lg px-3 text-xs" onClick={() => handleToggleDetails(voucher)}>
 													{isExpanded ? labels.hideDetails : labels.viewDetails}
 													{isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -502,6 +601,15 @@ export function SalesHistoryPage() {
 													</div>
 													</div>
 													<div className="flex flex-col gap-2 md:items-end">
+														<Button
+															type="button"
+															variant="secondary"
+															className={`h-9 rounded-lg px-3 text-xs font-semibold ${statusToggleClass}`}
+															onClick={() => void handleChangeVoucherStatus(voucher)}
+															disabled={isUpdatingStatus}
+														>
+															{isUpdatingStatus ? labels.switchingStatus : statusToggleLabel}
+														</Button>
 														<Button type="button" variant="secondary" className="h-9 rounded-lg px-3 text-xs" onClick={() => void handlePrintVoucher(voucher)}>
 															{labels.printVoucher}
 														</Button>
