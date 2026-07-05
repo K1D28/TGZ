@@ -285,8 +285,8 @@ export function SalesHistoryPage() {
 					return;
 				}
 
-				const maxRowsPerPage = 22;
-				const rowsPerCarryPage = 20;
+				const maxRowsPerPage = 23;
+				const rowsPerCarryPage = 23;
 
 				const itemChunks: typeof detail.items[] = [];
 				if (!detail.items.length) {
@@ -401,22 +401,22 @@ export function SalesHistoryPage() {
 								justify-content: space-between;
 								gap: 16px;
 								margin-bottom: 10px;
-								font-size: 12px;
+								font-size: 12.5px;
 							}
 							.header-center {
 								flex: 1;
 								text-align: center;
 							}
-							.meta { line-height: 1.6; }
-							table { width: 100%; border-collapse: collapse; font-size: 11px; }
+							.meta { line-height: 1.65; }
+							table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
 							thead th {
 								background: #f8fafc;
-								font-size: 11px;
+								font-size: 11.5px;
 								text-transform: uppercase;
 								letter-spacing: 0.12em;
 								color: #6b7280;
 							}
-							th, td { border: 1px solid #d1d5db; padding: 7px 8px; vertical-align: top; }
+							th, td { border: 1px solid #d1d5db; padding: 8px 9px; vertical-align: top; }
 							.num { text-align: right; white-space: nowrap; }
 							.center { text-align: center; }
 							.strong { font-weight: 700; }
@@ -426,7 +426,7 @@ export function SalesHistoryPage() {
 								display: grid;
 								grid-template-columns: 1fr auto;
 								gap: 8px 24px;
-								font-size: 12px;
+								font-size: 12.5px;
 							}
 							.page-number {
 								position: absolute;
