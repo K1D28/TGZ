@@ -285,21 +285,7 @@ export function SalesHistoryPage() {
 					return;
 				}
 
-				const maxRowsPerPage = 23;
-				const rowsPerCarryPage = 23;
-
-				const itemChunks: typeof detail.items[] = [];
-				if (!detail.items.length) {
-					itemChunks.push([]);
-				} else {
-					let cursor = 0;
-					while (cursor < detail.items.length) {
-						const remaining = detail.items.length - cursor;
-						const pageSize = remaining > maxRowsPerPage ? rowsPerCarryPage : remaining;
-						itemChunks.push(detail.items.slice(cursor, cursor + pageSize));
-						cursor += pageSize;
-					}
-				}
+				const itemChunks: typeof detail.items[] = [detail.items.length ? detail.items : []];
 
 				const tableHeaderHtml = `
 					<thead>
