@@ -693,15 +693,15 @@ name: snack.name,
 								</div>
 							</div>
 							<div className="max-h-[320px] overflow-auto">
-								<div className={`grid grid-cols-[36px_64px_minmax(0,1.5fr)_54px_66px_66px_minmax(0,1fr)_minmax(0,1fr)] border-b border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 ${isMyanmarLanguage ? 'text-[11px] font-bold tracking-[0.08em] text-slate-500' : ''}`}>
-									<div className="border-r border-slate-200 px-2 py-[10px] text-center" />
-									<div className={`border-r border-slate-200 px-4 py-[10px] text-center ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.no')}</div>
-									<div className={`border-r border-slate-200 px-4 py-[10px] ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.name')}</div>
-									<div className={`border-r border-slate-200 px-4 py-[10px] text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.qty')}</div>
-									<div className={`border-r border-slate-200 px-4 py-[10px] ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit')}</div>
-									<div className={`border-r border-slate-200 px-4 py-[10px] ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit2')}</div>
-									<div className={`border-r border-slate-200 px-4 py-[10px] text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit_price')}</div>
-									<div className={`px-4 py-[10px] text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.total')}</div>
+								<div className={`grid grid-cols-[36px_64px_minmax(0,1.5fr)_54px_66px_66px_minmax(0,1fr)_minmax(0,1fr)] border-b border-slate-200 bg-slate-50 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 ${isMyanmarLanguage ? 'text-[11px] font-bold tracking-[0.08em] text-slate-500' : ''}`}>
+									<div className="border-r border-slate-200 px-2 py-[9px] text-center" />
+									<div className={`border-r border-slate-200 px-4 py-[9px] text-center ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.no')}</div>
+									<div className={`border-r border-slate-200 px-4 py-[9px] ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.name')}</div>
+									<div className={`border-r border-slate-200 px-4 py-[9px] text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.qty')}</div>
+									<div className={`border-r border-slate-200 px-4 py-[9px] ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit')}</div>
+									<div className={`border-r border-slate-200 px-4 py-[9px] ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit2')}</div>
+									<div className={`border-r border-slate-200 px-4 py-[9px] text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.unit_price')}</div>
+									<div className={`px-4 py-[9px] text-right ${isMyanmarLanguage ? 'whitespace-normal leading-tight font-bold' : ''}`}>{t('voucher.summary.table.total')}</div>
 								</div>
 								<div className="divide-y divide-slate-200">
 									{items.length === 0 && !hasPreview ? (
@@ -717,8 +717,8 @@ name: snack.name,
 												const unitPrice = Number(item.price || 0);
 												const lineTotal = quantity * unit * unit2 * unitPrice;
 												return (
-													<div key={item.id} className="grid grid-cols-[36px_64px_minmax(0,1.5fr)_54px_66px_66px_minmax(0,1fr)_minmax(0,1fr)] text-[13px]">
-														<div className="border-r border-slate-200 px-2 py-[12px] text-center">
+													<div key={item.id} className="grid grid-cols-[36px_64px_minmax(0,1.5fr)_54px_66px_66px_minmax(0,1fr)_minmax(0,1fr)] text-[12px]">
+														<div className="border-r border-slate-200 px-2 py-[11px] text-center">
 															<button
 																type="button"
 																onClick={() => handleDeleteLineItem(item.id)}
@@ -729,27 +729,27 @@ name: snack.name,
 																×
 															</button>
 														</div>
-														<div className="border-r border-slate-200 px-4 py-[12px] text-center font-medium text-slate-900">{displayIndex}</div>
-														<div className="border-r border-slate-200 px-4 py-[12px] font-medium text-slate-900">{item.name}</div>
-														<div className="border-r border-slate-200 px-4 py-[12px] text-right text-slate-600">{quantity}</div>
-														<div className="border-r border-slate-200 px-4 py-[12px] text-slate-600">{displayUnit(unit)}</div>
-														<div className="border-r border-slate-200 px-4 py-[12px] text-slate-600">{displayUnit(unit2)}</div>
-														<div className="border-r border-slate-200 px-4 py-[12px] text-right text-slate-600">{formatAmountWithoutCurrency(unitPrice)}</div>
-														<div className="px-4 py-[12px] text-right font-medium text-slate-900">{formatAmountWithoutCurrency(lineTotal)}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] text-center font-medium text-slate-900">{displayIndex}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] font-medium text-slate-900">{item.name}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] text-right text-slate-600">{quantity}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] text-slate-600">{displayUnit(unit)}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] text-slate-600">{displayUnit(unit2)}</div>
+														<div className="border-r border-slate-200 px-4 py-[11px] text-right text-slate-600">{formatAmountWithoutCurrency(unitPrice)}</div>
+														<div className="px-4 py-[11px] text-right font-medium text-slate-900">{formatAmountWithoutCurrency(lineTotal)}</div>
 													</div>
 												);
 											})}
 											{/* Preview appears after submitted items so first submitted item stays No.1 */}
 											{hasPreview && (
-												<div key="preview" className="grid grid-cols-[36px_64px_minmax(0,1.5fr)_54px_66px_66px_minmax(0,1fr)_minmax(0,1fr)] text-[13px]">
-													<div className="border-r border-slate-200 px-2 py-[12px] text-center" />
-													<div className="border-r border-slate-200 px-4 py-[12px] text-center font-medium text-slate-900">{items.length + 1}</div>
-													<div className="border-r border-slate-200 px-4 py-[12px] font-medium text-slate-900">{itemForm.name || ''}</div>
-													<div className="border-r border-slate-200 px-4 py-[12px] text-right text-slate-600">{itemForm.qty ? Math.max(1, Number(itemForm.qty || 1)) : ''}</div>
-													<div className="border-r border-slate-200 px-4 py-[12px] text-slate-600">{itemForm.unit ? displayUnit(Number(itemForm.unit || 1)) : ''}</div>
-													<div className="border-r border-slate-200 px-4 py-[12px] text-slate-600">{itemForm.unit2 ? displayUnit(Number(itemForm.unit2 || 1)) : ''}</div>
-													<div className="border-r border-slate-200 px-4 py-[12px] text-right text-slate-600">{itemForm.price ? formatAmountWithoutCurrency(Number(itemForm.price || 0)) : ''}</div>
-													<div className="px-4 py-[12px] text-right font-medium text-slate-900">{formatAmountWithoutCurrency(Math.max(1, Number(itemForm.qty || 1)) * Number(itemForm.unit || 1) * Number(itemForm.unit2 || 1) * Number(itemForm.price || 0))}</div>
+												<div key="preview" className="grid grid-cols-[36px_64px_minmax(0,1.5fr)_54px_66px_66px_minmax(0,1fr)_minmax(0,1fr)] text-[12px]">
+													<div className="border-r border-slate-200 px-2 py-[11px] text-center" />
+													<div className="border-r border-slate-200 px-4 py-[11px] text-center font-medium text-slate-900">{items.length + 1}</div>
+													<div className="border-r border-slate-200 px-4 py-[11px] font-medium text-slate-900">{itemForm.name || ''}</div>
+													<div className="border-r border-slate-200 px-4 py-[11px] text-right text-slate-600">{itemForm.qty ? Math.max(1, Number(itemForm.qty || 1)) : ''}</div>
+													<div className="border-r border-slate-200 px-4 py-[11px] text-slate-600">{itemForm.unit ? displayUnit(Number(itemForm.unit || 1)) : ''}</div>
+													<div className="border-r border-slate-200 px-4 py-[11px] text-slate-600">{itemForm.unit2 ? displayUnit(Number(itemForm.unit2 || 1)) : ''}</div>
+													<div className="border-r border-slate-200 px-4 py-[11px] text-right text-slate-600">{itemForm.price ? formatAmountWithoutCurrency(Number(itemForm.price || 0)) : ''}</div>
+													<div className="px-4 py-[11px] text-right font-medium text-slate-900">{formatAmountWithoutCurrency(Math.max(1, Number(itemForm.qty || 1)) * Number(itemForm.unit || 1) * Number(itemForm.unit2 || 1) * Number(itemForm.price || 0))}</div>
 												</div>
 											)}
 										</>
@@ -846,25 +846,25 @@ name: snack.name,
 					</div>
 
 					<div className="overflow-auto border border-slate-300">
-							<div className="grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] border-b border-slate-300 bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
-								<div className="border-r border-slate-300 px-3 py-2.5 text-center">{t('voucher.summary.table.no')}</div>
-								<div className="border-r border-slate-300 px-4 py-2.5">{t('voucher.summary.table.name')}</div>
-								<div className="border-r border-slate-300 px-4 py-2.5 text-right">{t('voucher.summary.table.qty')}</div>
-								<div className="border-r border-slate-300 px-4 py-2.5 text-right">{t('voucher.summary.table.unit')}</div>
-								<div className="border-r border-slate-300 px-4 py-2.5 text-right">{t('voucher.summary.table.unit2')}</div>
-								<div className="border-r border-slate-300 px-4 py-2.5 text-right">{t('voucher.summary.table.unit_price')}</div>
-								<div className="px-4 py-2.5 text-right">{t('voucher.summary.table.total')}</div>
+							<div className="grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] border-b border-slate-300 bg-slate-50 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+								<div className="border-r border-slate-300 px-3 py-2 text-center">{t('voucher.summary.table.no')}</div>
+								<div className="border-r border-slate-300 px-4 py-2">{t('voucher.summary.table.name')}</div>
+								<div className="border-r border-slate-300 px-4 py-2 text-right">{t('voucher.summary.table.qty')}</div>
+								<div className="border-r border-slate-300 px-4 py-2 text-right">{t('voucher.summary.table.unit')}</div>
+								<div className="border-r border-slate-300 px-4 py-2 text-right">{t('voucher.summary.table.unit2')}</div>
+								<div className="border-r border-slate-300 px-4 py-2 text-right">{t('voucher.summary.table.unit_price')}</div>
+								<div className="px-4 py-2 text-right">{t('voucher.summary.table.total')}</div>
 						</div>
 						<div className="divide-y divide-slate-300">
 							{previewItems.length ? previewItems.map((item) => (
-									<div key={item.id} className="grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] text-[11px]">
-										<div className="border-r border-slate-300 px-3 py-2.5 text-center font-medium text-slate-700">{item.index}</div>
-										<div className="border-r border-slate-300 px-4 py-2.5 font-medium text-slate-900">{item.name}</div>
-										<div className="border-r border-slate-300 px-4 py-2.5 text-right text-slate-700">{item.quantity}</div>
-										<div className="border-r border-slate-300 px-4 py-2.5 text-right text-slate-700">{displayUnit(item.unit)}</div>
-										<div className="border-r border-slate-300 px-4 py-2.5 text-right text-slate-700">{displayUnit(item.unit2)}</div>
-										<div className="border-r border-slate-300 px-4 py-2.5 text-right text-slate-700">{formatAmountWithoutCurrency(item.unitPrice)}</div>
-										<div className="px-4 py-2.5 text-right font-semibold text-slate-900">{formatAmountWithoutCurrency(item.lineTotal)}</div>
+									<div key={item.id} className="grid grid-cols-[56px_minmax(0,1.5fr)_80px_90px_90px_140px_140px] text-[10px]">
+										<div className="border-r border-slate-300 px-3 py-2 text-center font-medium text-slate-700">{item.index}</div>
+										<div className="border-r border-slate-300 px-4 py-2 font-medium text-slate-900">{item.name}</div>
+										<div className="border-r border-slate-300 px-4 py-2 text-right text-slate-700">{item.quantity}</div>
+										<div className="border-r border-slate-300 px-4 py-2 text-right text-slate-700">{displayUnit(item.unit)}</div>
+										<div className="border-r border-slate-300 px-4 py-2 text-right text-slate-700">{displayUnit(item.unit2)}</div>
+										<div className="border-r border-slate-300 px-4 py-2 text-right text-slate-700">{formatAmountWithoutCurrency(item.unitPrice)}</div>
+										<div className="px-4 py-2 text-right font-semibold text-slate-900">{formatAmountWithoutCurrency(item.lineTotal)}</div>
 								</div>
 							)) : (
 								<div className="px-4 py-4 text-center text-sm text-slate-500">{previewStrings.empty}</div>
